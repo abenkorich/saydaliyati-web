@@ -25,10 +25,9 @@ pnpm dev
 ```
 
 The checked-in `.env.example` describes configuration; copying it to `.env.local`
-is optional for development. **No mounted env file is required.** The API URL is
-not known for this project; the example is a placeholder, not a working server.
+is optional for development. **No mounted env file is required.** The example uses a placeholder API URL; supply your actual service configuration.
 With no configuration the patient portal shows a session-check error and retry
-control; authentication remains disabled until its server session can initialize. Browser tests use synthetic mocks.
+control; authentication remains disabled until its server session can initialize. The default browser suite uses synthetic mocks.
 
 - `API_BASE_URL`: existing API origin or URL ending `/api/v1`; HTTPS in production.
 - `WEB_ORIGIN`: exact public browser origin, including port in development;
@@ -77,9 +76,13 @@ REDIS_TEST_URL=redis://127.0.0.1:16389 pnpm test
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e
+# Optional real backend acceptance in disposable local containers:
+pnpm test:live --api-root /absolute/path/to/sayadaliyati-api
 ```
 
-The browser suite mocks the same-origin BFF using isolated synthetic data. Session
+See `docs/live-integration.md` for the isolated real-backend suite and prerequisites.
+
+The default browser suite mocks the same-origin BFF using isolated synthetic data. Session
 unit/integration tests exercise authorization boundaries and rotation failures.
 See `docs/mobile-parity.md` and `docs/verification.md` for the actual tested scope
 and limitations. The API remains responsible for ownership, occurrence eligibility,
