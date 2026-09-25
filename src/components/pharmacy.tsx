@@ -1,12 +1,13 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { MedicineImage } from "./medicine-search";
 export type StockItem = {
   id: string;
   quantity: string;
   unit: string;
   expiryDate: string | null;
   isLowStock: boolean;
-  medicine: { name: string; strength: string | null };
+  medicine: { name: string; strength: string | null; boxImageUrl?:string|null; category?:{name:string}|null };
 };
 export type HomeData = {
   name: string;
@@ -39,6 +40,7 @@ export function StockCards({ items }: { items: StockItem[] }) {
     <div className="card-grid">
       {items.map((item) => (
         <article className="card stack" key={item.id}>
+          <MedicineImage medicine={item.medicine}/><span className="medicine-category">{item.medicine.category?.name ?? "Uncategorized"}</span>
           <h2>{item.medicine.name}</h2>
           <p className="muted">
             {[

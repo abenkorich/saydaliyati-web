@@ -19,6 +19,7 @@ import {
   type StockItem,
 } from "./pharmacy";
 
+import { MedicineImage, MedicineSearch, CategoryFilter } from "./medicine-search";
 import { Prescriptions } from "./prescriptions";
 import type { Request as PrescriptionRequest } from "./prescription-model";
 
@@ -32,6 +33,8 @@ type Area =
   | "Inbox"
   | "Settings";
 type Medicine = {
+  boxImageUrl?: string | null;
+  category?: { id:string; name:string; slug:string } | null;
   id: string;
   name: string;
   genericName: string | null;
@@ -180,6 +183,7 @@ function Demo({ medicine }: { medicine: Medicine }) {
 function MedicineCard({ medicine }: { medicine: Medicine }) {
   return (
     <section className="card stack">
+      <MedicineImage medicine={medicine}/><span className="medicine-category">{medicine.category?.name ?? "Uncategorized"}</span>
       <Demo medicine={medicine} />
       <h2>{medicine.name}</h2>
       <dl className="facts">
@@ -236,6 +240,7 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
     [password, setPassword] = useState(""),
     [firstName, setFirstName] = useState(""),
     [lastName, setLastName] = useState("");
+  const [category,setCategory] = useState("");
   const [search, setSearch] = useState(""),
     [term, setTerm] = useState(""),
     [page, setPage] = useState(1),
@@ -479,7 +484,7 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
               ? "/me/notifications"
               : "/medicines";
         const r = await api<Medicine[] | Treatment[] | Notice[]>(
-          `${path}?page=${page}&limit=20${area === "Medicines" && term ? `&q=${encodeURIComponent(term)}` : ""}`,
+          `${path}?page=${page}&limit=20${area === "Medicines" && term ? `&q=${encodeURIComponent(term)}` : ""}${area === "Medicines" && category ? `&category=${encodeURIComponent(category)}` : ""}`,
         );
         if (valid()) {
           setPages(Math.max(1, r.meta?.totalPages ?? 1));
@@ -500,7 +505,7 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
       active = false;
       controller.abort();
     };
-  }, [session, area, view, page, term, revision, report, backend, stockFilter]);
+  }, [session, area, view, page, term, category, revision, report, backend, stockFilter]);
   function navigate(next: View, nextArea = area) {
     generation.current++;
     setView(next);
@@ -1243,16 +1248,8 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
                     setRevision((n) => n + 1);
                   }}
                 >
-                  <label>
-                    Search medicine names
-                    <input
-                      type="search"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search by medicine name"
-                      disabled={busy}
-                    />
-                  </label>
+                  <MedicineSearch value={search} onChange={setSearch} api={prescriptionApi} category={category} disabled={busy} onSelect={m=>navigate({kind:"medicine",id:m.id})}/>
+                  <CategoryFilter api={prescriptionApi} value={category} onChange={value=>{setCategory(value);setPage(1);}}/>
                   <button disabled={busy}>Search</button>
                 </form>
                 <p className="intro muted">
@@ -1267,6 +1264,7 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
                       disabled={busy || loading}
                       onClick={() => navigate({ kind: "medicine", id: m.id })}
                     >
+                      <MedicineImage medicine={m}/><span className="medicine-category">{m.category?.name ?? "Uncategorized"}</span>
                       <Demo medicine={m} />
                       <h2>{m.name}</h2>
                       <p className="muted">

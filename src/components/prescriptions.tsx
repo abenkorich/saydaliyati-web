@@ -1,4 +1,5 @@
 "use client";
+import { MedicineSearch } from "./medicine-search";
 import { useEffect, useRef, useState } from "react";
 import {
   blank,
@@ -26,92 +27,13 @@ function MedicinePicker({
   onChange(id: string): void;
   api: Request;
 }) {
-  const [query, setQuery] = useState(""),
-    [results, setResults] = useState<
-      { id: string; name: string; strength: string | null }[]
-    >([]),
-    [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-  return (
-    <div className="stack">
-      <p className="muted">
-        {value
-          ? "Catalog medicine linked. Search to replace it."
-          : "Not linked. You can save a draft with the written name."}
-      </p>
-      <label>
-        Search catalog
-        <input
-          value={query}
-          disabled={disabled}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setResults([]);
-          }}
-        />
-      </label>
-      <button
-        type="button"
-        className="secondary"
-        disabled={disabled || busy || !query.trim()}
-        onClick={async () => {
-          setBusy(true);
-          setError("");
-          try {
-            const r = await api<typeof results>(
-              `/medicines?limit=10&q=${encodeURIComponent(query.trim())}`,
-            );
-            if (mounted.current) {
-              setResults(r.data);
-              if (!r.data.length)
-                setError("No medicines found. Try another name.");
-            }
-          } catch {
-            if (mounted.current)
-              setError("Catalog search failed. Please try again.");
-          } finally {
-            if (mounted.current) setBusy(false);
-          }
-        }}
-      >
-        Search medicines
-      </button>
-      {error && <p role="status">{error}</p>}
-      {results.map((m) => (
-        <button
-          type="button"
-          className="secondary"
-          key={m.id}
-          disabled={disabled}
-          onClick={() => {
-            onChange(m.id);
-            setQuery(`${m.name}${m.strength ? ` · ${m.strength}` : ""}`);
-            setResults([]);
-          }}
-        >
-          {m.name} {m.strength}
-        </button>
-      ))}
-      {value && (
-        <button
-          type="button"
-          className="quiet"
-          disabled={disabled}
-          onClick={() => onChange("")}
-        >
-          Clear catalog link
-        </button>
-      )}
-    </div>
-  );
+  const [query,setQuery]=useState("");
+  return <div><p>{value ? "Catalog medicine linked. Search to replace it." : "Choose a medicine or keep the written name."}</p>
+    <MedicineSearch value={query} onChange={setQuery} api={api} disabled={disabled} label="Search catalog" onSelect={m=>onChange(m.id)}/>
+    {!!value && <button type="button" disabled={disabled} onClick={()=>onChange("")}>Clear catalog link</button>}
+  </div>;
 }
+
 function Editor({
   value,
   onChange,

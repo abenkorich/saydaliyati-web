@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DirectorySearch } from "./directory-search";
 import { copy, locales, type Locale } from "./copy";
 function Icon({
   name,
@@ -254,9 +255,9 @@ export default function Landing({ locale }: { locale: Locale }) {
             <h2 id="directory-title">{t.directory.title}</h2>
             <p>{t.directory.description}</p>
             <form action="/portal" method="get" role="search" aria-label={t.directory.button}>
-              <label htmlFor="medicine-query">{t.directory.label}</label>
+
               <div className="lp-directory-input">
-                <input id="medicine-query" name="q" type="search" required maxLength={200} placeholder={t.directory.placeholder} aria-describedby="directory-note" />
+                <DirectorySearch label={t.directory.label}/>
                 <button className="lp-button" type="submit">{t.directory.button}<Icon name="arrow" className="lp-arrow" /></button>
               </div>
               <p id="directory-note" className="lp-directory-note">{t.directory.note}</p>
