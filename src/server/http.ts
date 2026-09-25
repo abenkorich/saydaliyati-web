@@ -55,9 +55,19 @@ export function allowed(method: string, path: string): boolean {
       /^me\/notification-preferences$/,
       /^me\/profile$/,
       /^me\/inventory$/,
+      /^me\/prescriptions$/,
+      new RegExp(`^me/prescriptions/${id}$`),
+      new RegExp(`^me/prescriptions/${id}/documents/${id}/download$`),
     ],
-    POST: [/^me\/medication-events$/, /^me\/inventory$/],
+    POST: [
+      /^me\/medication-events$/,
+      /^me\/inventory$/,
+      /^me\/prescriptions$/,
+      new RegExp(`^me/prescriptions/${id}/documents$`),
+    ],
+    DELETE: [new RegExp(`^me/prescriptions/${id}$`)],
     PATCH: [
+      new RegExp(`^me/prescriptions/${id}$`),
       /^me\/notification-preferences$/,
       /^me\/notifications\/read-all$/,
       new RegExp(`^me/notifications/${id}/read$`),
@@ -151,7 +161,9 @@ export async function runtime(): Promise<{
     fetch(`${base}${path}`, {
       ...init,
       headers: {
-        "content-type": "application/json",
+        ...(init.body instanceof FormData
+          ? {}
+          : { "content-type": "application/json" }),
         accept: "application/json",
         ...Object.fromEntries(new Headers(init.headers)),
       },
@@ -172,4 +184,53 @@ export async function relay(response: Response): Promise<Response> {
   const retry = response.headers.get("retry-after");
   if (retry && /^\d+$/.test(retry)) result.headers.set("retry-after", retry);
   return result;
+}
+
+// Bound multipart bytes before parsing. Only document routes opt into this limit.
+export async function documentBody(request: Request): Promise<FormData> {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("multipart/form-data;"))
+    throw new SessionError(400, "VALIDATION_ERROR");
+  const reader = request.body?.getReader();
+  if (!reader) throw new SessionError(400, "VALIDATION_ERROR");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const next = await reader.read();
+    if (next.done) break;
+    size += next.value.length;
+    if (size > 5 * 1024 * 1024 + 65536) {
+      await reader.cancel();
+      throw new SessionError(413, "DOCUMENT_TOO_LARGE");
+    }
+    chunks.push(next.value);
+  }
+  let parsed: FormData;
+  try {
+    parsed = await new Response(Buffer.concat(chunks), {
+      headers: { "content-type": contentType },
+    }).formData();
+  } catch {
+    throw new SessionError(400, "VALIDATION_ERROR");
+  }
+  const file = parsed.get("file"),
+    page = parsed.get("pageNumber");
+  if (
+    Array.from(parsed.keys()).length !== 2 ||
+    !(file instanceof File) ||
+    !["image/jpeg", "image/png"].includes(file.type) ||
+    !file.size ||
+    file.size > 5 * 1024 * 1024 ||
+    typeof page !== "string" ||
+    !/^([1-9]|1[0-9]|20)$/.test(page)
+  )
+    throw new SessionError(400, "VALIDATION_ERROR");
+  const form = new FormData();
+  form.append(
+    "file",
+    file,
+    "prescription." + (file.type === "image/png" ? "png" : "jpg"),
+  );
+  form.append("pageNumber", page);
+  return form;
 }

@@ -19,7 +19,11 @@ import {
   type StockItem,
 } from "./pharmacy";
 
+import { Prescriptions } from "./prescriptions";
+import type { Request as PrescriptionRequest } from "./prescription-model";
+
 type Area =
+  | "Prescriptions"
   | "Home"
   | "My Pharmacy"
   | "More"
@@ -117,12 +121,19 @@ async function request<T>(
     credentials: "same-origin",
     cache: "no-store",
     headers: {
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(body === undefined || body instanceof FormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       ...(path.startsWith("/api/backend/") && sessionVersion
         ? { "X-Session-Version": sessionVersion }
         : {}),
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body:
+      body === undefined
+        ? undefined
+        : body instanceof FormData
+          ? body
+          : JSON.stringify(body),
     signal: signal
       ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
       : AbortSignal.timeout(20000),
@@ -200,7 +211,8 @@ function Empty({ title, children }: { title: string; children?: ReactNode }) {
   );
 }
 
-export default function Portal() {
+export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQuery?: string }) {
+  const pendingMedicineQuery = useRef(initialMedicineQuery);
   const [stock, setStock] = useState<StockItem[]>([]),
     [stockTotal, setStockTotal] = useState(0),
     [stockFilter, setStockFilter] = useState<StockFilter>("All"),
@@ -249,11 +261,23 @@ export default function Portal() {
       request<T>(path, method, body, signal, sessionVersion.current),
     [],
   );
+  const prescriptionApi: PrescriptionRequest = useCallback(
+    <T,>(path: string, method = "GET", body?: unknown) =>
+      backend<T>(`/api/backend${path}`, method, body),
+    [backend],
+  );
   const generation = useRef(0),
     actionLock = useRef(false),
     dirtyRef = useRef(false),
     channel = useRef<BroadcastChannel | null>(null),
     dialog = useRef<HTMLDialogElement>(null);
+  const openPendingSearch = useCallback(() => {
+    if (!pendingMedicineQuery.current) return;
+    setSearch(pendingMedicineQuery.current);
+    setTerm(pendingMedicineQuery.current);
+    setArea("Medicines");
+    pendingMedicineQuery.current = "";
+  }, []);
   const clearPrivate = useCallback(() => {
     generation.current++;
     setStock([]);
@@ -297,7 +321,7 @@ export default function Portal() {
         if (result.data.authenticated && !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         sessionVersion.current = result.data.sessionVersion ?? null;
-        if (result.data.authenticated) setLogoutFailed(false);
+        if (result.data.authenticated) { setLogoutFailed(false); openPendingSearch(); }
         setSession(result.data.authenticated ? "signed-in" : "signed-out");
         setError("");
       }
@@ -308,7 +332,7 @@ export default function Portal() {
         else setError(message(e));
       }
     }
-  }, []);
+  }, [openPendingSearch]);
   const report = useCallback(
     (e: unknown) => {
       if (
@@ -424,7 +448,7 @@ export default function Portal() {
               courses: plans?.data ?? [],
             });
         }
-      } else if (area === "More") {
+      } else if (area === "More" || area === "Prescriptions") {
         return;
       } else if (area === "Settings") {
         const r = await api<{ configured: boolean; preferences: Flags | null }>(
@@ -584,6 +608,7 @@ export default function Portal() {
         if (!result.data.authenticated || !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         clearPrivate();
+        openPendingSearch();
         sessionVersion.current = result.data.sessionVersion;
         setLogoutFailed(false);
         setSession("signed-in");
@@ -1130,10 +1155,22 @@ export default function Portal() {
                 )}
               </div>
             )}
+            {listVisible && area === "Prescriptions" && (
+              <Prescriptions
+                api={prescriptionApi}
+                report={report}
+                revision={revision}
+              />
+            )}
             {listVisible && area === "More" && (
               <div className="card-grid">
                 {(
                   [
+                    {
+                      area: "Prescriptions",
+                      title: "My Prescriptions",
+                      text: "Create drafts, attach images and review prescriptions",
+                    },
                     {
                       area: "Medicines",
                       title: "Medicine catalog",
@@ -1398,6 +1435,7 @@ export default function Portal() {
               area !== "Settings" &&
               area !== "Home" &&
               area !== "More" &&
+              area !== "Prescriptions" &&
               pages > 1 && (
                 <nav className="pagination" aria-label="Pagination">
                   <button
@@ -1478,6 +1516,12 @@ export default function Portal() {
             Add a medicine
           </button>
           <p className="muted">Search the catalog and record your stock.</p>
+          <button
+            className="secondary"
+            onClick={() => switchArea("Prescriptions")}
+          >
+            My Prescriptions
+          </button>
           <button
             className="secondary"
             onClick={() => switchArea("My Pharmacy")}

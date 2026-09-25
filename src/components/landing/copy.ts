@@ -4,6 +4,7 @@ export function isLocale(value: string): value is Locale {
   return locales.some((locale) => locale === value);
 }
 export type LandingCopy = {
+  directory: { title: string; description: string; label: string; placeholder: string; button: string; note: string };
   brand: string;
   tagline: string;
   skip: string;
@@ -50,6 +51,7 @@ export type LandingCopy = {
 };
 export const copy: Record<Locale, LandingCopy> = {
   en: {
+    directory: {"title": "Find a medicine. Know where to start.", "description": "Explore the medicine directory and keep the details you need close at hand.", "label": "Medicine name", "placeholder": "Enter a medicine name…", "button": "Search directory", "note": "Sign in to view results in your portal. Your search will be kept."},
     brand: "Saydaliyati",
     tagline: "All my medicines, in one place.",
     skip: "Skip to content",
@@ -153,6 +155,7 @@ export const copy: Record<Locale, LandingCopy> = {
     footer: "Made for the small acts of everyday care.",
   },
   fr: {
+    directory: {"title": "Un médicament à trouver ? Commencez ici.", "description": "Explorez le répertoire des médicaments et retrouvez les informations dont vous avez besoin.", "label": "Nom du médicament", "placeholder": "Saisissez le nom d’un médicament…", "button": "Rechercher", "note": "Connectez-vous pour consulter les résultats dans votre espace. Votre recherche sera conservée."},
     brand: "Saydaliyati",
     tagline: "Tous mes médicaments, au même endroit.",
     skip: "Aller au contenu",
@@ -259,6 +262,7 @@ export const copy: Record<Locale, LandingCopy> = {
     footer: "Pour les petits gestes qui prennent soin de vous.",
   },
   ar: {
+    directory: {"title": "ابحث عن دوائك. ابدأ من هنا.", "description": "تصفّح دليل الأدوية واعثر على المعلومات التي تحتاجها في مكان واحد.", "label": "اسم الدواء", "placeholder": "أدخل اسم الدواء…", "button": "ابحث في الدليل", "note": "سجّل الدخول لعرض النتائج في حسابك. سنحتفظ ببحثك."},
     brand: "صيدليتي",
     tagline: "كل أدويتي، في مكان واحد.",
     skip: "انتقل إلى المحتوى",

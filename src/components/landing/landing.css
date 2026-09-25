@@ -1635,3 +1635,19 @@ summary:focus-visible {
   height: auto;
   overflow: visible;
 }
+
+.lp-directory { display: flex; gap: 28px; padding: 40px; margin-block: 12px 80px; background: #e6f3ee; border: 1px solid #cce2d9; border-radius: 28px; }
+.lp-directory-icon { display: grid; place-items: center; flex-shrink: 0; width: 60px; height: 60px; background: white; color: var(--lp-teal); border-radius: 20px; }
+.lp-directory-icon svg { width: 30px; height: 30px; }
+.lp-directory-copy { flex: 1; min-width: 0; }
+.lp-directory h2 { font-size: clamp(24px, 3vw, 34px); letter-spacing: -0.8px; }
+.lp-directory p { color: #50645d; line-height: 1.65; margin-top: 12px; }
+.lp-directory form { margin-top: 24px; }
+.lp-directory label { display: block; margin-bottom: 9px; font-size: 14px; font-weight: 700; }
+.lp-directory-input { display: flex; gap: 12px; }
+.lp-directory input { width: 100%; min-width: 0; border: 1px solid #aac5ba; border-radius: 12px; padding: 17px 18px; background: white; color: var(--lp-dark); }
+.lp-directory button { border: 0; cursor: pointer; flex-shrink: 0; }
+.lp-directory input:focus-visible, .lp-directory button:focus-visible { outline: 3px solid var(--lp-teal); outline-offset: 3px; }
+.lp-directory .lp-directory-note { font-size: 13px; }
+@media (max-width: 800px) { .lp-directory { padding: 26px; gap: 18px; } .lp-directory-input { flex-direction: column; } }
+@media (max-width: 500px) { .lp-directory { flex-direction: column; padding: 22px; } }

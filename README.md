@@ -60,10 +60,17 @@ medical database. Loss of the store requires signing in again.
 - Responsive desktop/mobile navigation, keyboard focus, retry, refresh,
   loading/empty states and preservation of unsaved preference choices.
 
-Treatment creation, prescriptions, profile editing, account recovery, camera scanning,
+Treatment creation, profile editing, account recovery, camera scanning,
 AI assistance, community sharing,
 native push and web push are future scope. They are not missing features from
 this port of the current mobile app. This is a patient portal, not an admin console.
+
+## Prescriptions
+
+Open **More → My Prescriptions** or the **Add** menu for drafts, catalog lookup,
+image attachments, explicit field review, confirmation and archive. See
+[Prescription management](docs/prescriptions.md) for API storage requirements
+and supported daily regimens.
 
 ## Commands and validation
 

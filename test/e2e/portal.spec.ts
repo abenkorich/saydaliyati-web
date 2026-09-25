@@ -385,3 +385,19 @@ test('configured preferences save only the five visible flags, preserving unseen
   expect(submitted).toEqual({ ...allOff, doseReminders: true, expiryReminders: true });
   expect(submitted).not.toHaveProperty('expiryLeadDays');
 });
+
+for (const locale of ['en', 'ar', 'fr']) {
+  test(`directory search ${locale} survives sign-in`, async ({ page }) => {
+    const { calls } = await mockApi(page, false);
+    await page.goto(`/${locale}`);
+    await page.locator('#medicine-query').fill('DEMO دواء');
+    await page.locator('#directory button').click();
+    await expect(page).toHaveURL(/\/portal\?q=/);
+    await page.getByLabel(/Email or international phone/).fill('synthetic@example.test');
+    await page.getByLabel(/^Password/).fill('synthetic password');
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await expect(page.getByLabel('Search medicine names')).toHaveValue('DEMO دواء');
+    await expect.poll(() => calls.some(call => new URL(call.path, 'http://localhost').searchParams.get('q') === 'DEMO دواء')).toBe(true);
+    await expect(page.getByRole('button', { name: 'Open DEMO Synthetic medicine', exact: true })).toBeVisible();
+  });
+}

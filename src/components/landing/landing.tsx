@@ -248,6 +248,21 @@ export default function Landing({ locale }: { locale: Locale }) {
             <p className="lp-preview-caption">{t.preview}</p>
           </div>
         </section>
+        <section id="directory" className="lp-directory lp-wrap" aria-labelledby="directory-title">
+          <div className="lp-directory-icon"><Icon name="pill" /></div>
+          <div className="lp-directory-copy">
+            <h2 id="directory-title">{t.directory.title}</h2>
+            <p>{t.directory.description}</p>
+            <form action="/portal" method="get" role="search" aria-label={t.directory.button}>
+              <label htmlFor="medicine-query">{t.directory.label}</label>
+              <div className="lp-directory-input">
+                <input id="medicine-query" name="q" type="search" required maxLength={200} placeholder={t.directory.placeholder} aria-describedby="directory-note" />
+                <button className="lp-button" type="submit">{t.directory.button}<Icon name="arrow" className="lp-arrow" /></button>
+              </div>
+              <p id="directory-note" className="lp-directory-note">{t.directory.note}</p>
+            </form>
+          </div>
+        </section>
         <section id="why" className="lp-features">
           <div className="lp-wrap">
             <div className="lp-section-heading">

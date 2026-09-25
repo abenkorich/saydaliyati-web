@@ -1,6 +1,7 @@
 import {
   allowed,
   body,
+  documentBody,
   failure,
   protectMutation,
   relay,
@@ -24,7 +25,13 @@ async function handle(
     const sessionVersion = request.headers.get("x-session-version");
     if (!sessionVersion) throw new SessionError(401, "AUTH_SESSION_CHANGED");
     const { sessions } = await services();
-    const payload = request.method === "GET" ? undefined : await body(request);
+    const payload =
+      request.method === "GET" || request.method === "DELETE"
+        ? undefined
+        : request.method === "POST" &&
+            /^me\/prescriptions\/[a-zA-Z0-9-]+\/documents$/.test(path)
+          ? await documentBody(request)
+          : await body(request);
     return await relay(
       await sessions.request(
         id,
@@ -41,4 +48,4 @@ async function handle(
     return response;
   }
 }
-export { handle as GET, handle as POST, handle as PATCH };
+export { handle as GET, handle as POST, handle as PATCH, handle as DELETE };

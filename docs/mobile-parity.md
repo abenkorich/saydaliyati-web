@@ -69,7 +69,7 @@ results, separately from test coverage.
 ## Future scope, not missing mobile parity
 
 The audited mobile implementation does not yet provide treatment creation,
-prescription screens, profile editing, account recovery, native
+profile editing, account recovery, native
 push or web push. The browser port does not invent those capabilities. Remote
 hosting, domains, live API integration checks and deployment remain outside this
 local implementation task.
@@ -90,3 +90,9 @@ fixtures; no live API URL or patient data was used.
 Configured preference fixtures include the API-only `expiryLeadDays` field. The final regression verifies saves send exactly the five visible flags and never overwrite that unseen setting.
 
 Final integrated rerun: all 36 checks passed together after the configured-preferences regression.
+
+## Prescription management added
+
+Mobile and web now implement manual prescription drafts, explicit field review,
+confirmation, archival, and private image attachments. See [prescriptions.md](prescriptions.md).
+OCR, camera capture and treatment creation remain outside this slice.
