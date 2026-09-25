@@ -565,7 +565,21 @@ export default function Portal() {
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             }
           : { identifier: id, password },
-      );
+      ).catch((error: unknown) => {
+        if (
+          register &&
+          error instanceof RequestError &&
+          ["VALIDATION_ERROR", "REGISTRATION_UNAVAILABLE"].includes(error.code)
+        ) {
+          if (valid())
+            setError(
+              "We couldn’t create your account with these details. Enter your first and last name (up to 100 characters each), a valid email address or a phone number with its country code (for example, +213555123456), and a password of 15–128 characters. If you’ve signed up before, select ‘I already have an account’ to sign in. If everything looks correct, try again later.",
+            );
+          return null;
+        }
+        throw error;
+      });
+      if (!result) return;
       if (valid()) {
         if (!result.data.authenticated || !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");

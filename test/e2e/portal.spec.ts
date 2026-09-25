@@ -260,9 +260,11 @@ test('navigation ignores a late catalogue response and focus reloads the active 
   await expect.poll(() => calls.filter(call => call.path.endsWith('/notification-preferences')).length).toBeGreaterThan(count);
 });
 
-test('registration failure stays generic and does not expose account existence', async ({ page }) => {
+for (const code of ['VALIDATION_ERROR', 'REGISTRATION_UNAVAILABLE']) {
+test(`registration ${code} explains requirements and sign-in recovery`, async ({ page }) => {
   const { state } = await mockApi(page, false);
   state.registrationFail = true;
+  await page.route('**/api/auth/register', route => route.fulfill({ status: code === 'VALIDATION_ERROR' ? 400 : 409, contentType: 'application/json', body: JSON.stringify({ error: { code } }) }));
   await page.goto('/portal');
   await page.getByRole('button', { name: 'Create an account', exact: true }).click();
   await page.getByLabel('First name', { exact: true }).fill('Synthetic');
@@ -270,10 +272,14 @@ test('registration failure stays generic and does not expose account existence',
   await page.getByLabel(/Email or international phone/).fill('synthetic@example.test');
   await page.getByLabel(/^Password/).fill('synthetic password');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await expect(page.getByRole('main').getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('We couldn’t create your account with these details.');
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('15–128 characters');
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('I already have an account');
   await expect(page.getByRole('main').getByRole('alert')).not.toContainText(/already exists|registered email|account exists/i);
   await expect(page.getByRole('button', { name: 'Create account', exact: true })).toBeVisible();
 });
+
+}
 
 test('captures synthetic portal screens for visual review', async ({ page }, testInfo) => {
   await mockApi(page);
