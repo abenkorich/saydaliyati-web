@@ -46,6 +46,8 @@ export function allowed(method: string, path: string): boolean {
   const id = "[a-zA-Z0-9-]+";
   const patterns: Record<string, RegExp[]> = {
     GET: [
+      /^admin\/(overview|users|medicines|settings)$/,
+      /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
       /^medicines$/,
       new RegExp(`^medicines/${id}$`),
       /^me\/treatments$/,
@@ -60,6 +62,8 @@ export function allowed(method: string, path: string): boolean {
       new RegExp(`^me/prescriptions/${id}/documents/${id}/download$`),
     ],
     POST: [
+      /^admin\/medicines$/,
+      /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
       /^me\/medication-events$/,
       /^me\/inventory$/,
       /^me\/prescriptions$/,
@@ -67,6 +71,9 @@ export function allowed(method: string, path: string): boolean {
     ],
     DELETE: [new RegExp(`^me/prescriptions/${id}$`)],
     PATCH: [
+      /^admin\/settings$/,
+      new RegExp(`^admin/(users|medicines)/${id}$`),
+      new RegExp(`^admin/directory/(doctors|pharmacies|hospitals)/${id}$`),
       new RegExp(`^me/prescriptions/${id}$`),
       /^me\/notification-preferences$/,
       /^me\/notifications\/read-all$/,

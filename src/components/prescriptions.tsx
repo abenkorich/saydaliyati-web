@@ -1,4 +1,5 @@
 "use client";
+import { DailyTimePicker } from "./daily-time-picker";
 import { MedicineSearch } from "./medicine-search";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -27,11 +28,29 @@ function MedicinePicker({
   onChange(id: string): void;
   api: Request;
 }) {
-  const [query,setQuery]=useState("");
-  return <div><p>{value ? "Catalog medicine linked. Search to replace it." : "Choose a medicine or keep the written name."}</p>
-    <MedicineSearch value={query} onChange={setQuery} api={api} disabled={disabled} label="Search catalog" onSelect={m=>onChange(m.id)}/>
-    {!!value && <button type="button" disabled={disabled} onClick={()=>onChange("")}>Clear catalog link</button>}
-  </div>;
+  const [query, setQuery] = useState("");
+  return (
+    <div>
+      <p>
+        {value
+          ? "Catalog medicine linked. Search to replace it."
+          : "Choose a medicine or keep the written name."}
+      </p>
+      <MedicineSearch
+        value={query}
+        onChange={setQuery}
+        api={api}
+        disabled={disabled}
+        label="Search catalog"
+        onSelect={(m) => onChange(m.id)}
+      />
+      {!!value && (
+        <button type="button" disabled={disabled} onClick={() => onChange("")}>
+          Clear catalog link
+        </button>
+      )}
+    </div>
+  );
 }
 
 function Editor({
@@ -59,6 +78,14 @@ function Editor({
                 onChange={(id) => onChange({ ...value, medicineId: id })}
               />
             </>
+          ) : f.kind === "times" ? (
+            <DailyTimePicker
+              value={value.scheduledTimes}
+              disabled={disabled}
+              onChange={(scheduledTimes) =>
+                onChange({ ...value, scheduledTimes })
+              }
+            />
           ) : (
             <label>
               {f.label}
@@ -73,15 +100,14 @@ function Editor({
                 />
               ) : (
                 <input
+                  type={f.kind === "date" ? "date" : "text"}
+                  min={f.kind === "date" ? "0001-01-01" : undefined}
+                  max={f.kind === "date" ? "9999-12-31" : undefined}
                   value={value[f.name]}
                   disabled={disabled}
                   inputMode={f.kind === "number" ? "decimal" : undefined}
                   placeholder={
-                    f.kind === "date"
-                      ? "YYYY-MM-DD"
-                      : f.kind === "times"
-                        ? "08:00, 20:00"
-                        : "Unknown if blank"
+                    f.kind === "date" ? undefined : "Unknown if blank"
                   }
                   onChange={(e) =>
                     onChange({ ...value, [f.name]: e.target.value })
@@ -365,7 +391,9 @@ export function Prescriptions({
           <label>
             Prescription date (optional)
             <input
-              placeholder="YYYY-MM-DD"
+              type="date"
+              min="0001-01-01"
+              max="9999-12-31"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
@@ -373,7 +401,9 @@ export function Prescriptions({
           <label>
             Valid until (optional)
             <input
-              placeholder="YYYY-MM-DD"
+              type="date"
+              min="0001-01-01"
+              max="9999-12-31"
               value={until}
               onChange={(e) => setUntil(e.target.value)}
             />

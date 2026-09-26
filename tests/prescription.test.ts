@@ -69,10 +69,10 @@ test("dose, quantity, calendar dates and explicit time validation reject invalid
     () => parseInputs({ ...values(), quantity: "1.0001" }),
     /decimal places/,
   );
-  for (const v of ["8:00", "24:00", "08:00,08:00"])
+  for (const v of ["8:00", "24:00", "08:00,08:00", "08:00,", ",08:00"])
     assert.throws(
       () => parseInputs({ ...values(), scheduledTimes: v }),
-      /HH:mm/,
+      /different daily times/,
     );
   assert.throws(
     () => parseInputs({ ...values(), endDate: "2026-02-30" }),

@@ -131,3 +131,7 @@ Node 24 satisfies Next.js's Node >=20.9 requirement. TypeScript 5.9.3 is pinned 
 support TypeScript 7. ESLint 9.39.5 is retained for Next's React plugin compatibility
 (ESLint 10 currently crashes that plugin); track its upgrade separately. All package
 versions and the pnpm lockfile belong to this independent repository.
+
+## Administration
+
+The web portal includes `/admin` for platform management. See [administration setup and scope](docs/administration.md) for environment credentials, migrations, provisioning and verification.

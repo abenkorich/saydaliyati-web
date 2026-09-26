@@ -17,7 +17,7 @@ export async function generateMetadata({
   return {
     title: `${t.brand} — ${t.tagline}`,
     description: t.description,
-    icons: { icon: "/icon.svg" },
+    icons: { icon: "/icon-family.png", apple: "/icon-family.png" },
     alternates: { languages: { en: "/en", ar: "/ar", fr: "/fr" } },
   };
 }

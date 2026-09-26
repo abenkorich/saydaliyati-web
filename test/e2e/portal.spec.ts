@@ -342,7 +342,7 @@ test('uncertain stock save keeps explicit inputs and does not replay the POST on
   await page.getByRole('button', { name: `Open ${medicine.name}`, exact: true }).click();
   await page.getByLabel('Stock quantity', { exact: true }).fill('3');
   await page.getByLabel(/^Stock unit/).selectOption('ML');
-  await page.getByLabel('Expiry date YYYY-MM-DD (optional)', { exact: true }).fill('2027-09-25');
+  await page.getByLabel('Expiry date (optional)', { exact: true }).fill('2027-09-25');
   await page.getByRole('button', { name: 'Add to My Pharmacy', exact: true }).click();
   await expect(page.getByRole('main').getByRole('alert')).toContainText('SERVICE_UNAVAILABLE');
   await expect(page.getByRole('button', { name: 'Add to My Pharmacy', exact: true })).toBeDisabled();

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   useCallback,
   useEffect,
@@ -19,7 +21,11 @@ import {
   type StockItem,
 } from "./pharmacy";
 
-import { MedicineImage, MedicineSearch, CategoryFilter } from "./medicine-search";
+import {
+  MedicineImage,
+  MedicineSearch,
+  CategoryFilter,
+} from "./medicine-search";
 import { Prescriptions } from "./prescriptions";
 import type { Request as PrescriptionRequest } from "./prescription-model";
 
@@ -34,7 +40,7 @@ type Area =
   | "Settings";
 type Medicine = {
   boxImageUrl?: string | null;
-  category?: { id:string; name:string; slug:string } | null;
+  category?: { id: string; name: string; slug: string } | null;
   id: string;
   name: string;
   genericName: string | null;
@@ -183,7 +189,10 @@ function Demo({ medicine }: { medicine: Medicine }) {
 function MedicineCard({ medicine }: { medicine: Medicine }) {
   return (
     <section className="card stack">
-      <MedicineImage medicine={medicine}/><span className="medicine-category">{medicine.category?.name ?? "Uncategorized"}</span>
+      <MedicineImage medicine={medicine} />
+      <span className="medicine-category">
+        {medicine.category?.name ?? "Uncategorized"}
+      </span>
       <Demo medicine={medicine} />
       <h2>{medicine.name}</h2>
       <dl className="facts">
@@ -215,7 +224,11 @@ function Empty({ title, children }: { title: string; children?: ReactNode }) {
   );
 }
 
-export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQuery?: string }) {
+export default function Portal({
+  initialMedicineQuery = "",
+}: {
+  initialMedicineQuery?: string;
+}) {
   const pendingMedicineQuery = useRef(initialMedicineQuery);
   const [stock, setStock] = useState<StockItem[]>([]),
     [stockTotal, setStockTotal] = useState(0),
@@ -240,7 +253,7 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
     [password, setPassword] = useState(""),
     [firstName, setFirstName] = useState(""),
     [lastName, setLastName] = useState("");
-  const [category,setCategory] = useState("");
+  const [category, setCategory] = useState("");
   const [search, setSearch] = useState(""),
     [term, setTerm] = useState(""),
     [page, setPage] = useState(1),
@@ -326,7 +339,10 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
         if (result.data.authenticated && !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         sessionVersion.current = result.data.sessionVersion ?? null;
-        if (result.data.authenticated) { setLogoutFailed(false); openPendingSearch(); }
+        if (result.data.authenticated) {
+          setLogoutFailed(false);
+          openPendingSearch();
+        }
         setSession(result.data.authenticated ? "signed-in" : "signed-out");
         setError("");
       }
@@ -505,7 +521,18 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
       active = false;
       controller.abort();
     };
-  }, [session, area, view, page, term, category, revision, report, backend, stockFilter]);
+  }, [
+    session,
+    area,
+    view,
+    page,
+    term,
+    category,
+    revision,
+    report,
+    backend,
+    stockFilter,
+  ]);
   function navigate(next: View, nextArea = area) {
     generation.current++;
     setView(next);
@@ -678,7 +705,13 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
       <header className="site-header">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
-            ＋
+            <Image
+              src="/icon-family.png"
+              alt=""
+              width={46}
+              height={46}
+              sizes="46px"
+            />
           </span>
           <div>
             <span className="brand-name">Saydaliyati</span>
@@ -1248,12 +1281,27 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
                     setRevision((n) => n + 1);
                   }}
                 >
-                  <MedicineSearch value={search} onChange={setSearch} api={prescriptionApi} category={category} disabled={busy} onSelect={m=>navigate({kind:"medicine",id:m.id})}/>
-                  <CategoryFilter api={prescriptionApi} value={category} onChange={value=>{setCategory(value);setPage(1);}}/>
+                  <MedicineSearch
+                    label="Search medicine names"
+                    value={search}
+                    onChange={setSearch}
+                    api={prescriptionApi}
+                    category={category}
+                    disabled={busy}
+                    onSelect={(m) => navigate({ kind: "medicine", id: m.id })}
+                  />
+                  <CategoryFilter
+                    api={prescriptionApi}
+                    value={category}
+                    onChange={(value) => {
+                      setCategory(value);
+                      setPage(1);
+                    }}
+                  />
                   <button disabled={busy}>Search</button>
                 </form>
                 <p className="intro muted">
-                  Local demo entries are synthetic and labeled DEMO.
+                  Search by brand or active ingredient.
                 </p>
                 <div className="card-grid">
                   {medicines.map((m) => (
@@ -1264,7 +1312,10 @@ export default function Portal({ initialMedicineQuery = "" }: { initialMedicineQ
                       disabled={busy || loading}
                       onClick={() => navigate({ kind: "medicine", id: m.id })}
                     >
-                      <MedicineImage medicine={m}/><span className="medicine-category">{m.category?.name ?? "Uncategorized"}</span>
+                      <MedicineImage medicine={m} />
+                      <span className="medicine-category">
+                        {m.category?.name ?? "Uncategorized"}
+                      </span>
                       <Demo medicine={m} />
                       <h2>{m.name}</h2>
                       <p className="muted">

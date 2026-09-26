@@ -36,7 +36,7 @@ async function setup(page: Page) {
     if (path.endsWith("/me/profile")) return send({ firstName: "Synthetic" });
     if (path.endsWith("/me/inventory") || path.endsWith("/me/treatments"))
       return send([], 200, { total: 0, totalPages: 1 });
-    if (path.endsWith("/medicines"))
+    if (path.endsWith("/medicines") || path.endsWith("/medicines/suggestions"))
       return send([
         {
           id: medicineId,
@@ -163,25 +163,15 @@ async function draft(page: Page) {
     .fill("Synthetic prescription medicine");
   await page.getByLabel("Search catalog", { exact: true }).fill("Synthetic");
   await page
-    .getByRole("button", { name: "Search medicines", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "Synthetic catalog medicine DEMO",
-      exact: true,
+    .getByRole("option", {
+      name: /Synthetic catalog medicine/,
     })
     .click();
   await page.getByLabel("Dose", { exact: true }).fill("1");
   await page.getByLabel("Dose unit", { exact: true }).fill("tablet");
-  await page
-    .getByLabel("Daily times (HH:mm, separated by commas)", { exact: true })
-    .fill("08:00");
-  await page
-    .getByLabel("Start date (YYYY-MM-DD)", { exact: true })
-    .fill("2026-10-01");
-  await page
-    .getByLabel("End date (YYYY-MM-DD)", { exact: true })
-    .fill("2026-10-03");
+  await page.getByLabel("Daily time 1", { exact: true }).fill("08:00");
+  await page.getByLabel("Start date", { exact: true }).fill("2026-10-01");
+  await page.getByLabel("End date", { exact: true }).fill("2026-10-03");
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
   await expect(
     page.getByText("Draft saved. Review the fields before confirming."),
@@ -202,13 +192,11 @@ test("create, attach, explicitly review, confirm and archive a prescription", as
   const state = await setup(page);
   await draft(page);
   expect(state.creates).toBe(1);
-  await page
-    .getByLabel("Attach page 1")
-    .setInputFiles({
-      name: "synthetic.png",
-      mimeType: "image/png",
-      buffer: Buffer.from("synthetic image"),
-    });
+  await page.getByLabel("Attach page 1").setInputFiles({
+    name: "synthetic.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("synthetic image"),
+  });
   await expect(
     page.getByRole("button", { name: "Download page 1" }),
   ).toBeVisible();
@@ -299,13 +287,11 @@ test("stale review requires reload and an uncertain upload cannot be resubmitted
     }),
   ).toBeVisible();
   state.uploadFail = true;
-  await page
-    .getByLabel("Attach page 1")
-    .setInputFiles({
-      name: "synthetic.png",
-      mimeType: "image/png",
-      buffer: Buffer.from("synthetic"),
-    });
+  await page.getByLabel("Attach page 1").setInputFiles({
+    name: "synthetic.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("synthetic"),
+  });
   await expect(
     page.getByText("Reload and check the attached pages before retrying.", {
       exact: false,
@@ -321,4 +307,54 @@ test("stale review requires reload and an uncertain upload cannot be resubmitted
   ).toBeVisible();
   await expect(page.getByLabel("Attach page 2")).toBeVisible();
   expect(state.uploads).toBe(1);
+});
+
+test("calendar and time pickers preserve dates and multiple daily doses", async ({
+  page,
+}) => {
+  const state = await setup(page);
+  await page
+    .getByRole("button", { name: "New prescription", exact: true })
+    .click();
+  await page
+    .getByLabel("Medicine name as written", { exact: true })
+    .fill("Picker test");
+  for (const [label, value] of [
+    ["Prescription date (optional)", "2026-10-01"],
+    ["Valid until (optional)", "2026-10-31"],
+    ["Start date", "2026-10-02"],
+    ["End date", "2026-10-10"],
+  ]) {
+    const input = page.getByLabel(label, { exact: true });
+    await expect(input).toHaveAttribute("type", "date");
+    await input.fill(value);
+  }
+  const first = page.getByLabel("Daily time 1", { exact: true });
+  await expect(first).toHaveAttribute("type", "time");
+  await first.fill("08:30");
+  await page.getByRole("button", { name: "Add time", exact: true }).click();
+  await page.getByLabel("Daily time 2", { exact: true }).fill("20:15");
+  await page.getByRole("button", { name: "Add time", exact: true }).click();
+  await page.getByLabel("Daily time 3", { exact: true }).fill("23:00");
+  await page
+    .getByRole("button", { name: "Remove daily time 3", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(
+    page.getByText("Draft saved. Review the fields before confirming."),
+  ).toBeVisible();
+  expect(state.rx?.prescriptionDate).toBe("2026-10-01");
+  expect(state.rx?.validUntil).toBe("2026-10-31");
+  const values = Object.fromEntries(
+    state.rx!.medications[0].fields.map((field) => [
+      field.fieldName,
+      field.value,
+    ]),
+  );
+  expect(values.startDate).toBe("2026-10-02");
+  expect(values.endDate).toBe("2026-10-10");
+  expect(values.scheduledTimes).toEqual(["08:30", "20:15"]);
+  await expect(page.getByLabel("Daily time 2", { exact: true })).toHaveValue(
+    "20:15",
+  );
 });

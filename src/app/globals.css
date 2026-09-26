@@ -113,6 +113,12 @@ h3 {
   font-size: 35px;
   line-height: 1;
 }
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
 .brand-name {
   color: var(--primary);
   font-size: 27px;
@@ -691,3 +697,5 @@ select:focus-visible {
 }
 
 .medicine-image{display:flex;align-items:center;justify-content:center;min-height:130px;width:100%;border-radius:14px;background:#eff7f5;margin-bottom:12px;overflow:hidden}.medicine-image img{height:130px;width:100%;object-fit:contain}.medicine-image-small{width:48px;min-height:48px;flex:0 0 48px;margin:0}.medicine-image-small img{height:48px}.medicine-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:#648c87}.medicine-category{display:inline-block;font-size:.75rem;color:#226b64;background:#e4f2ef;border-radius:20px;padding:4px 10px;margin-bottom:8px}.medicine-search{position:relative;flex:1;min-width:0;text-align:start}.medicine-search label{display:block;margin-bottom:6px}.medicine-search input{width:100%;min-height:46px}.medicine-suggestions{position:absolute;top:100%;inset-inline:0;z-index:30;background:white;border:1px solid #ccdad7;border-radius:12px;box-shadow:0 10px 30px #1233;max-height:360px;overflow:auto;min-width:260px}.medicine-suggestions.hidden{display:none}.medicine-suggestion{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;color:#172321}.medicine-suggestion small{display:block;color:#667371;font-size:.75rem}.medicine-suggestion:hover,.medicine-suggestion[aria-selected=true]{background:#e4f2ef}.category-filter{min-width:170px}.category-filter select{display:block;width:100%;min-height:46px;border:1px solid #ccdad7;border-radius:10px;background:white;padding:10px}.search-form{flex-wrap:wrap}.lp-directory-input .medicine-search{width:100%}
+
+@media(max-width:640px){.search-form .medicine-search{flex:1 0 100%}.search-form .category-filter{flex:1}.medicine-suggestions{min-width:0;width:100%}.search-form .medicine-search label{white-space:normal}}

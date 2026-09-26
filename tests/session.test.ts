@@ -198,14 +198,14 @@ test("mutation CSRF requires exact configured Origin, including login", () => {
     ),
   );
 });
-test("proxy allowlist rejects traversal, admin, auth tokens, profile edits and treatment creation", () => {
+test("proxy allowlist rejects traversal, unimplemented admin routes, auth tokens, profile edits and treatment creation", () => {
   for (const [method, path] of [
     ["POST", "auth/refresh"],
     ["GET", "../auth/refresh"],
     ["GET", "medicines/../../auth/refresh"],
     ["PATCH", "me/profile"],
     ["POST", "me/treatments"],
-    ["GET", "admin/users"],
+    ["GET", "admin/secrets"],
   ])
     assert.equal(allowed(method!, path!), false);
   assert.equal(allowed("POST", "me/medication-events"), true);

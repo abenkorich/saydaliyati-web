@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { DirectorySearch } from "./directory-search";
 import { copy, locales, type Locale } from "./copy";
 function Icon({
@@ -89,7 +90,13 @@ function Brand({ locale }: { locale: Locale }) {
       aria-label={copy[locale].brand}
     >
       <span className="lp-mark">
-        <Icon name="plus" />
+        <Image
+          src="/icon-family.png"
+          alt=""
+          width={43}
+          height={43}
+          sizes="43px"
+        />
       </span>
       <span>
         {copy[locale].brand}
@@ -183,7 +190,13 @@ export default function Landing({ locale }: { locale: Locale }) {
             <div className="lp-product">
               <div className="lp-product-top">
                 <span className="lp-mini-mark">
-                  <Icon name="plus" />
+                  <Image
+                    src="/icon-family.png"
+                    alt=""
+                    width={22}
+                    height={22}
+                    sizes="22px"
+                  />
                 </span>
                 <span>{t.brand}</span>
                 <Icon name="bell" />
@@ -249,18 +262,33 @@ export default function Landing({ locale }: { locale: Locale }) {
             <p className="lp-preview-caption">{t.preview}</p>
           </div>
         </section>
-        <section id="directory" className="lp-directory lp-wrap" aria-labelledby="directory-title">
-          <div className="lp-directory-icon"><Icon name="pill" /></div>
+        <section
+          id="directory"
+          className="lp-directory lp-wrap"
+          aria-labelledby="directory-title"
+        >
+          <div className="lp-directory-icon">
+            <Icon name="pill" />
+          </div>
           <div className="lp-directory-copy">
             <h2 id="directory-title">{t.directory.title}</h2>
             <p>{t.directory.description}</p>
-            <form action="/portal" method="get" role="search" aria-label={t.directory.button}>
-
+            <form
+              action="/portal"
+              method="get"
+              role="search"
+              aria-label={t.directory.button}
+            >
               <div className="lp-directory-input">
-                <DirectorySearch label={t.directory.label}/>
-                <button className="lp-button" type="submit">{t.directory.button}<Icon name="arrow" className="lp-arrow" /></button>
+                <DirectorySearch label={t.directory.label} />
+                <button className="lp-button" type="submit">
+                  {t.directory.button}
+                  <Icon name="arrow" className="lp-arrow" />
+                </button>
               </div>
-              <p id="directory-note" className="lp-directory-note">{t.directory.note}</p>
+              <p id="directory-note" className="lp-directory-note">
+                {t.directory.note}
+              </p>
             </form>
           </div>
         </section>

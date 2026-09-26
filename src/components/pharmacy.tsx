@@ -7,7 +7,12 @@ export type StockItem = {
   unit: string;
   expiryDate: string | null;
   isLowStock: boolean;
-  medicine: { name: string; strength: string | null; boxImageUrl?:string|null; category?:{name:string}|null };
+  medicine: {
+    name: string;
+    strength: string | null;
+    boxImageUrl?: string | null;
+    category?: { name: string } | null;
+  };
 };
 export type HomeData = {
   name: string;
@@ -40,7 +45,10 @@ export function StockCards({ items }: { items: StockItem[] }) {
     <div className="card-grid">
       {items.map((item) => (
         <article className="card stack" key={item.id}>
-          <MedicineImage medicine={item.medicine}/><span className="medicine-category">{item.medicine.category?.name ?? "Uncategorized"}</span>
+          <MedicineImage medicine={item.medicine} />
+          <span className="medicine-category">
+            {item.medicine.category?.name ?? "Uncategorized"}
+          </span>
           <h2>{item.medicine.name}</h2>
           <p className="muted">
             {[
@@ -251,11 +259,13 @@ export function AddStock({
         </select>
       </label>
       <label>
-        Expiry date YYYY-MM-DD (optional)
+        Expiry date (optional)
         <input
           value={expiry}
           onChange={(e) => setExpiry(e.target.value)}
-          placeholder="YYYY-MM-DD"
+          type="date"
+          min="0001-01-01"
+          max="9999-12-31"
           disabled={busy || disabled}
         />
       </label>
