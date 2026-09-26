@@ -46,6 +46,8 @@ export function allowed(method: string, path: string): boolean {
   const id = "[a-zA-Z0-9-]+";
   const patterns: Record<string, RegExp[]> = {
     GET: [
+      /^admin\/ai\/(settings|usage)$/,
+      /^geography\/(countries|wilayas|communes)$/,
       /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/export$/,
       /^directory\/(hospitals|pharmacies|doctors)$/,
       /^admin\/(overview|users|medicines|settings)$/,
@@ -64,6 +66,8 @@ export function allowed(method: string, path: string): boolean {
       new RegExp(`^me/prescriptions/${id}/documents/${id}/download$`),
     ],
     POST: [
+      /^admin\/ai\/verify$/,
+      /^admin\/geography\/(countries|wilayas|communes)(\/(preview|apply))?$/,
       /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/(preview|apply)$/,
       /^admin\/medicines$/,
       /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
@@ -74,6 +78,8 @@ export function allowed(method: string, path: string): boolean {
     ],
     DELETE: [new RegExp(`^me/prescriptions/${id}$`)],
     PATCH: [
+      /^admin\/ai\/settings$/,
+      new RegExp(`^admin/geography/(countries|wilayas|communes)/${id}$`),
       /^admin\/settings$/,
       new RegExp(`^admin/(users|medicines)/${id}$`),
       new RegExp(`^admin/directory/(doctors|pharmacies|hospitals)/${id}$`),

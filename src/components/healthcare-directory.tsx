@@ -1,4 +1,5 @@
 "use client";
+import { GeoSelect, emptyLocation, type LocationValue } from "./geo-select";
 import { useEffect, useState } from "react";
 import type { Request } from "./prescription-model";
 export const directoryAreas = {
@@ -11,6 +12,9 @@ export function isDirectoryArea(area: string): area is DirectoryArea {
   return Object.prototype.hasOwnProperty.call(directoryAreas, area);
 }
 type Entry = {
+  country?: { nameEnglish: string } | null;
+  wilaya?: { nameEnglish: string } | null;
+  commune?: { nameEnglish: string } | null;
   id: string;
   name: string;
   specialty: string | null;
@@ -21,12 +25,14 @@ type Entry = {
 };
 export function HealthcareDirectory({
   area,
+  version,
   api,
   report,
   revision,
   navigate,
 }: {
   area: DirectoryArea;
+  version: string;
   api: Request;
   report(error: unknown): void;
   revision: number;
@@ -34,7 +40,8 @@ export function HealthcareDirectory({
 }) {
   const [query, setQuery] = useState(""),
     [city, setCity] = useState("");
-  const [filters, setFilters] = useState({ q: "", city: "" });
+  const [location, setLocation] = useState<LocationValue>(emptyLocation);
+  const [filters, setFilters] = useState({ q: "", city: "", ...emptyLocation });
   const [page, setPage] = useState(1),
     [retry, setRetry] = useState(0);
   const [state, setState] = useState<{
@@ -51,6 +58,13 @@ export function HealthcareDirectory({
       limit: "20",
       ...(filters.q ? { q: filters.q } : {}),
       ...(filters.city ? { city: filters.city } : {}),
+      ...Object.fromEntries(
+        Object.entries({
+          countryId: filters.countryId,
+          wilayaId: filters.wilayaId,
+          communeId: filters.communeId,
+        }).filter(([, v]) => v),
+      ),
     });
     void Promise.resolve()
       .then(() => {
@@ -86,7 +100,8 @@ export function HealthcareDirectory({
   const reset = () => {
     setQuery("");
     setCity("");
-    setFilters({ q: "", city: "" });
+    setLocation(emptyLocation);
+    setFilters({ q: "", city: "", ...emptyLocation });
     setPage(1);
   };
   return (
@@ -114,7 +129,7 @@ export function HealthcareDirectory({
         className="care-directory-search"
         onSubmit={(event) => {
           event.preventDefault();
-          setFilters({ q: query.trim(), city: city.trim() });
+          setFilters({ q: query.trim(), city: city.trim(), ...location });
           setPage(1);
         }}
       >
@@ -138,8 +153,14 @@ export function HealthcareDirectory({
             placeholder="Enter a city"
           />
         </label>
+        <GeoSelect version={version} value={location} onChange={setLocation} />
         <button type="submit">Search directory</button>
-        {(query || city || filters.q || filters.city) && (
+        {(query ||
+          city ||
+          filters.q ||
+          filters.city ||
+          location.countryId ||
+          filters.countryId) && (
           <button className="quiet" type="button" onClick={reset}>
             Clear filters
           </button>
@@ -175,7 +196,13 @@ export function HealthcareDirectory({
           <div className="card-grid">
             {state.rows.map((entry) => {
               const phone = entry.phone?.replace(/[\s().-]/g, "");
-              const location = [entry.name, entry.address, entry.city]
+              const location = [
+                entry.name,
+                entry.address,
+                entry.commune?.nameEnglish || entry.city,
+                entry.wilaya?.nameEnglish,
+                entry.country?.nameEnglish,
+              ]
                 .filter(Boolean)
                 .join(", ");
               return (
@@ -200,9 +227,25 @@ export function HealthcareDirectory({
                       <dd>{entry.address || "Address not provided"}</dd>
                     </div>
                     <div>
-                      <dt>City</dt>
-                      <dd>{entry.city || "City not provided"}</dd>
+                      <dt>Commune / City</dt>
+                      <dd>
+                        {entry.commune?.nameEnglish ||
+                          entry.city ||
+                          "City not provided"}
+                      </dd>
                     </div>
+                    {entry.wilaya && (
+                      <div>
+                        <dt>Wilaya / Province</dt>
+                        <dd>{entry.wilaya.nameEnglish}</dd>
+                      </div>
+                    )}
+                    {entry.country && (
+                      <div>
+                        <dt>Country</dt>
+                        <dd>{entry.country.nameEnglish}</dd>
+                      </div>
+                    )}
                   </dl>
                   <div className="care-directory-contacts">
                     {entry.phone &&
@@ -229,7 +272,11 @@ export function HealthcareDirectory({
                         Contact details not provided
                       </span>
                     )}
-                    {(entry.address || entry.city) && (
+                    {(entry.address ||
+                      entry.city ||
+                      entry.commune ||
+                      entry.wilaya ||
+                      entry.country) && (
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`}
                         target="_blank"

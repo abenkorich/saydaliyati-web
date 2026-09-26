@@ -12701,6 +12701,33 @@
               "maxLength": 100
             },
             "description": "Literal case-insensitive search in name, specialty, address and city"
+          },
+          {
+            "name": "communeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wilayaId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "countryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -12910,6 +12937,601 @@
         "summary": "List active hospitals, pharmacies or doctors for authenticated portal users",
         "tags": [
           "Healthcare directory"
+        ]
+      }
+    },
+    "/api/v1/geography/{kind}": {
+      "get": {
+        "operationId": "GeoController_list",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "countries",
+                "wilayas",
+                "communes"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "parentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Geography"
+        ]
+      }
+    },
+    "/api/v1/admin/geography/{kind}": {
+      "post": {
+        "operationId": "GeoController_create",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "countries",
+                "wilayas",
+                "communes"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "pattern": "^[A-Za-z0-9-]+$"
+                  },
+                  "parentId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "nameEnglish": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "nameFrench": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "nameArabic": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "zone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "isDeliverable": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "parentId",
+                  "nameEnglish",
+                  "nameFrench",
+                  "nameArabic",
+                  "zone",
+                  "isDeliverable"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Geography"
+        ]
+      }
+    },
+    "/api/v1/admin/geography/{kind}/{id}": {
+      "patch": {
+        "operationId": "GeoController_save",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "countries",
+                "wilayas",
+                "communes"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "pattern": "^[A-Za-z0-9-]+$"
+                  },
+                  "parentId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "nameEnglish": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 150
+                  },
+                  "nameFrench": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "nameArabic": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "zone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "isDeliverable": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "parentId",
+                  "nameEnglish",
+                  "nameFrench",
+                  "nameArabic",
+                  "zone",
+                  "isDeliverable"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Geography"
+        ]
+      }
+    },
+    "/api/v1/admin/geography/{kind}/{operation}": {
+      "post": {
+        "operationId": "GeoController_import",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "countries",
+                "wilayas",
+                "communes"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "operation",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "preview",
+                "apply"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2097152
+                  },
+                  "countryId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "content"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Geography"
+        ]
+      }
+    },
+    "/api/v1/admin/directory/{kind}": {
+      "get": {
+        "operationId": "AdminController_directory",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Administration"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createDirectory",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "countryId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "wilayaId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "communeId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "specialty": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "licenseNumber": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "city": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "email": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 320,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "ARCHIVED"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "specialty",
+                  "licenseNumber",
+                  "address",
+                  "city",
+                  "phone",
+                  "email",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Administration"
+        ]
+      }
+    },
+    "/api/v1/admin/directory/{kind}/{id}": {
+      "patch": {
+        "operationId": "AdminController_updateDirectory",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "countryId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "wilayaId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "communeId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "specialty": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "licenseNumber": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "city": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "phone": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "email": {
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 320,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DRAFT",
+                      "ACTIVE",
+                      "ARCHIVED"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "specialty",
+                  "licenseNumber",
+                  "address",
+                  "city",
+                  "phone",
+                  "email",
+                  "status"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Administration"
         ]
       }
     }

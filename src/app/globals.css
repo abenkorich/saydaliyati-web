@@ -804,3 +804,12 @@ select:focus-visible {
  .medicine-results[data-view="list"] > .card { grid-template-columns:64px minmax(0,1fr); gap:12px; }
  .medicine-results[data-view="list"] .medicine-image { height:64px; min-height:64px; }
 }
+
+.geo-selects { display:flex; flex-wrap:wrap; gap:12px; width:100%; }
+.geo-selects label { flex:1 1 180px; min-width:0; }
+.geo-selects select { width:100%; min-width:0; }
+
+@media (max-width: 640px) { .geo-selects label { flex-basis:100%; } }
+.geo-admin .care-directory-tabs button { background:var(--primary-soft); color:var(--primary); }
+.geo-admin .care-directory-tabs button[aria-current="page"] { background:var(--primary); color:white; }
+.geo-admin a { color:var(--primary); }

@@ -1,4 +1,7 @@
 "use client";
+import { AiAdmin } from "./ai-admin";
+import { Geography } from "./geography";
+import { GeoSelect, emptyLocation, type LocationValue } from "../geo-select";
 import Link from "next/link";
 import { DataTransfer } from "./data-transfer";
 import {
@@ -10,6 +13,8 @@ import {
 } from "react";
 import "./admin.css";
 type Area =
+  | "ai"
+  | "geography"
   | "overview"
   | "users"
   | "medicines"
@@ -25,6 +30,8 @@ type Result = {
   meta?: { total?: number; totalPages?: number };
 };
 const areas: { key: Area; label: string; icon: string }[] = [
+  { key: "ai", label: "AI", icon: "✦" },
+  { key: "geography", label: "Countries & locations", icon: "◎" },
   { key: "overview", label: "Overview", icon: "◫" },
   { key: "users", label: "Users", icon: "◉" },
   { key: "medicines", label: "Medicines", icon: "✚" },
@@ -36,6 +43,9 @@ const areas: { key: Area; label: string; icon: string }[] = [
   { key: "subscriptions", label: "Subscriptions", icon: "◇" },
 ];
 const descriptions: Record<Area, string> = {
+  ai: "Manage AI settings, verify access and understand usage and costs.",
+  geography:
+    "Manage countries, wilayas and communes in English, French and Arabic.",
   transfers: "Import, review and export your administrative data.",
   overview: "A clear view of your platform and the people behind it.",
   users: "Manage account access and keep your community secure.",
@@ -267,7 +277,9 @@ export function Admin() {
               {error}
             </p>
           )}
-          {area === "transfers" ? (
+          {area === "ai" ? (<AiAdmin key={session} version={session} expired={() => {setSession(null);setError("Your administrator session ended. Please sign in again.");}} />) : area === "geography" ? (
+            <Geography version={session} />
+          ) : area === "transfers" ? (
             <DataTransfer
               key={session}
               version={session}
@@ -455,6 +467,10 @@ function Workspace({
     const data: Record<string, string | null> = {};
     for (const field of fields(area))
       data[field.key] = String(form.get(field.key) ?? "").trim() || null;
+    if (["doctors", "pharmacies", "hospitals"].includes(area)) {
+      for (const key of ["countryId", "wilayaId", "communeId"])
+        data[key] = String(form.get(key) ?? "") || null;
+    }
     if (
       !window.confirm(
         area === "users"
@@ -773,6 +789,7 @@ function Workspace({
       )}
       {edit && (
         <Editor
+          version={version}
           area={area}
           row={edit}
           save={save}
@@ -791,6 +808,7 @@ function Workspace({
   );
 }
 function Editor({
+  version,
   area,
   row,
   save,
@@ -798,6 +816,7 @@ function Editor({
   saving,
   error,
 }: {
+  version: string;
   area: Area;
   row: Row;
   save: (event: FormEvent<HTMLFormElement>) => void;
@@ -805,6 +824,12 @@ function Editor({
   saving: boolean;
   error: string;
 }) {
+  const [location, setLocation] = useState<LocationValue>({
+    ...emptyLocation,
+    countryId: String(row.countryId ?? ""),
+    wilayaId: String(row.wilayaId ?? ""),
+    communeId: String(row.communeId ?? ""),
+  });
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
@@ -841,6 +866,14 @@ function Editor({
         </button>
       </div>
       <form onSubmit={save}>
+        {["doctors", "pharmacies", "hospitals"].includes(area) && (
+          <GeoSelect
+            version={version}
+            value={location}
+            onChange={setLocation}
+            disabled={saving}
+          />
+        )}
         {fields(area).map((field) => (
           <label key={field.key}>
             {field.label}

@@ -1257,6 +1257,7 @@ export default function Portal({
             )}
             {listVisible && isDirectoryArea(area) && (
               <HealthcareDirectory
+                version={sessionVersion.current ?? ""}
                 key={area}
                 area={area}
                 api={prescriptionApi}

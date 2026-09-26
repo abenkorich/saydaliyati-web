@@ -33,7 +33,7 @@ async function handle(
           ? await documentBody(request)
           : await body(
               request,
-              /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/(preview|apply)$/.test(
+              /^admin\/(?:transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)|geography\/(countries|wilayas|communes))\/(preview|apply)$/.test(
                 path,
               )
                 ? 4 * 1024 * 1024
