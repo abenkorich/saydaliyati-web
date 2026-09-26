@@ -46,6 +46,7 @@ export function allowed(method: string, path: string): boolean {
   const id = "[a-zA-Z0-9-]+";
   const patterns: Record<string, RegExp[]> = {
     GET: [
+      /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/export$/,
       /^directory\/(hospitals|pharmacies|doctors)$/,
       /^admin\/(overview|users|medicines|settings)$/,
       /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
@@ -63,6 +64,7 @@ export function allowed(method: string, path: string): boolean {
       new RegExp(`^me/prescriptions/${id}/documents/${id}/download$`),
     ],
     POST: [
+      /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/(preview|apply)$/,
       /^admin\/medicines$/,
       /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
       /^me\/medication-events$/,
@@ -108,7 +110,10 @@ export function setCookie(
   );
   return response;
 }
-export async function body(request: Request): Promise<string> {
+export async function body(
+  request: Request,
+  maxBytes = 16384,
+): Promise<string> {
   if (
     !request.headers
       .get("content-type")
@@ -124,7 +129,7 @@ export async function body(request: Request): Promise<string> {
     const next = await reader.read();
     if (next.done) break;
     size += next.value.length;
-    if (size > 16384) {
+    if (size > maxBytes) {
       await reader.cancel();
       throw new SessionError(400, "VALIDATION_ERROR");
     }

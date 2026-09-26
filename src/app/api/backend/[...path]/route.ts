@@ -31,7 +31,14 @@ async function handle(
         : request.method === "POST" &&
             /^me\/prescriptions\/[a-zA-Z0-9-]+\/documents$/.test(path)
           ? await documentBody(request)
-          : await body(request);
+          : await body(
+              request,
+              /^admin\/transfers\/(users|medicines|doctors|pharmacies|hospitals|settings)\/(preview|apply)$/.test(
+                path,
+              )
+                ? 4 * 1024 * 1024
+                : 16384,
+            );
     return await relay(
       await sessions.request(
         id,

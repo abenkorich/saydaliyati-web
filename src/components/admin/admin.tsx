@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { DataTransfer } from "./data-transfer";
 import {
   useCallback,
   useEffect,
@@ -16,7 +17,8 @@ type Area =
   | "pharmacies"
   | "hospitals"
   | "settings"
-  | "subscriptions";
+  | "subscriptions"
+  | "transfers";
 type Row = { id: string; [key: string]: string | number | null };
 type Result = {
   data: Row[] | Row;
@@ -30,9 +32,11 @@ const areas: { key: Area; label: string; icon: string }[] = [
   { key: "pharmacies", label: "Pharmacies", icon: "⊞" },
   { key: "hospitals", label: "Hospitals", icon: "▥" },
   { key: "settings", label: "Settings", icon: "⚙" },
+  { key: "transfers", label: "Import & Export", icon: "⇄" },
   { key: "subscriptions", label: "Subscriptions", icon: "◇" },
 ];
 const descriptions: Record<Area, string> = {
+  transfers: "Import, review and export your administrative data.",
   overview: "A clear view of your platform and the people behind it.",
   users: "Manage account access and keep your community secure.",
   medicines: "Maintain the medicine catalog and its source information.",
@@ -263,18 +267,31 @@ export function Admin() {
               {error}
             </p>
           )}
-          <Workspace
-            key={session + area}
-            area={area}
-            version={session}
-            navigate={setArea}
-            expired={() => {
-              setSession(null);
-              setError(
-                "Your administrator session ended. Please sign in again.",
-              );
-            }}
-          />
+          {area === "transfers" ? (
+            <DataTransfer
+              key={session}
+              version={session}
+              expired={() => {
+                setSession(null);
+                setError(
+                  "Your administrator session ended. Please sign in again.",
+                );
+              }}
+            />
+          ) : (
+            <Workspace
+              key={session + area}
+              area={area}
+              version={session}
+              navigate={setArea}
+              expired={() => {
+                setSession(null);
+                setError(
+                  "Your administrator session ended. Please sign in again.",
+                );
+              }}
+            />
+          )}
         </div>
       </main>
     </div>

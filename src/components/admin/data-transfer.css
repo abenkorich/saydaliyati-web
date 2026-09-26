@@ -1,0 +1,152 @@
+.transfer-workspace {
+  display: grid;
+  gap: 22px;
+}
+.transfer-selector {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.6fr) minmax(
+      230px,
+      1.7fr
+    );
+  align-items: end;
+  gap: 24px;
+}
+.transfer-selector p {
+  margin: 0;
+}
+.transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.transfer-grid .admin-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.transfer-grid .admin-panel h2,
+.transfer-grid .admin-panel p {
+  margin: 0;
+}
+.transfer-grid label {
+  width: 100%;
+}
+.transfer-grid .admin-panel > button {
+  margin-top: 0;
+}
+.transfer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.transfer-guide summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+}
+.transfer-guide p {
+  max-width: none;
+  margin-top: 12px;
+}
+.transfer-workspace .transfer-filename {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.transfer-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  background: #eff8f5;
+  padding: 18px;
+  border-radius: 10px;
+  margin: 20px 0;
+  color: #53635d;
+  font-size: 13px;
+}
+.transfer-counts strong {
+  font-size: 23px;
+  color: #087f7b;
+  padding-right: 8px;
+}
+.transfer-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  min-width: 420px;
+}
+.transfer-preview th {
+  background: #f8faf9;
+  color: #667371;
+  font-weight: 500;
+}
+.transfer-preview td,
+.transfer-preview th {
+  padding: 13px;
+  border-bottom: 1px solid #e4eae8;
+  overflow-wrap: anywhere;
+}
+.transfer-preview .admin-table-scroll {
+  margin-top: 18px;
+}
+.transfer-preview p {
+  max-width: none;
+}
+.transfer-workspace input[type="file"] {
+  font-size: 13px;
+  padding: 10px;
+  max-width: 100%;
+}
+.transfer-workspace input[type="file"]::file-selector-button {
+  border: 0;
+  border-radius: 5px;
+  background: #edf8f5;
+  color: #087f7b;
+  padding: 8px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  .transfer-selector {
+    grid-template-columns: 1fr 1fr;
+  }
+  .transfer-selector p {
+    grid-column: 1/-1;
+  }
+  .transfer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 500px) {
+  .transfer-selector {
+    grid-template-columns: 1fr;
+  }
+  .transfer-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .transfer-actions button {
+    width: 100%;
+  }
+}
+
+.transfer-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+.transfer-workspace > *,
+.transfer-grid > * {
+  min-width: 0;
+}
+.transfer-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .transfer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.admin-sidebar {
+  overflow-y: auto;
+}
