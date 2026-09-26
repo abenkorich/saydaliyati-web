@@ -46,6 +46,7 @@ export function allowed(method: string, path: string): boolean {
   const id = "[a-zA-Z0-9-]+";
   const patterns: Record<string, RegExp[]> = {
     GET: [
+      /^directory\/(hospitals|pharmacies|doctors)$/,
       /^admin\/(overview|users|medicines|settings)$/,
       /^admin\/directory\/(doctors|pharmacies|hospitals)$/,
       /^medicines$/,

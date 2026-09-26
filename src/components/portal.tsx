@@ -1,5 +1,10 @@
 "use client";
 import {
+  HealthcareDirectory,
+  isDirectoryArea,
+  type DirectoryArea,
+} from "./healthcare-directory";
+import {
   DirectoryFilterFields,
   MedicineDirectoryDetails,
   directoryParams,
@@ -37,6 +42,7 @@ import { Prescriptions } from "./prescriptions";
 import type { Request as PrescriptionRequest } from "./prescription-model";
 
 type Area =
+  | DirectoryArea
   | "Prescriptions"
   | "Home"
   | "My Pharmacy"
@@ -480,7 +486,11 @@ export default function Portal({
               courses: plans?.data ?? [],
             });
         }
-      } else if (area === "More" || area === "Prescriptions") {
+      } else if (
+        area === "More" ||
+        area === "Prescriptions" ||
+        isDirectoryArea(area)
+      ) {
         return;
       } else if (area === "Settings") {
         const r = await api<{ configured: boolean; preferences: Flags | null }>(
@@ -766,6 +776,7 @@ export default function Portal({
               "My Pharmacy",
               "Treatments",
               "Medicines",
+              "Hospitals",
               "Inbox",
               "Settings",
               "More",
@@ -773,11 +784,15 @@ export default function Portal({
           ).map((item) => (
             <button
               key={item}
-              aria-current={area === item ? "page" : undefined}
+              aria-current={
+                area === item || (item === "Hospitals" && isDirectoryArea(area))
+                  ? "page"
+                  : undefined
+              }
               disabled={busy}
               onClick={() => switchArea(item)}
             >
-              {item}
+              {item === "Hospitals" ? "Care directory" : item}
             </button>
           ))}
         </nav>
@@ -1214,6 +1229,16 @@ export default function Portal({
                 revision={revision}
               />
             )}
+            {listVisible && isDirectoryArea(area) && (
+              <HealthcareDirectory
+                key={area}
+                area={area}
+                api={prescriptionApi}
+                report={report}
+                revision={revision}
+                navigate={switchArea}
+              />
+            )}
             {listVisible && area === "More" && (
               <div className="card-grid">
                 {(
@@ -1227,6 +1252,21 @@ export default function Portal({
                       area: "Medicines",
                       title: "Medicine catalog",
                       text: "Search medicines and add stock",
+                    },
+                    {
+                      area: "Hospitals",
+                      title: "Hospitals",
+                      text: "Find hospitals and healthcare facilities",
+                    },
+                    {
+                      area: "Pharmacies",
+                      title: "Pharmacies",
+                      text: "Find pharmacy addresses and contact details",
+                    },
+                    {
+                      area: "Doctors",
+                      title: "Doctors",
+                      text: "Search doctors by name, specialty and city",
                     },
                     {
                       area: "Inbox",
@@ -1286,7 +1326,7 @@ export default function Portal({
             {listVisible && area === "Medicines" && (
               <>
                 <form
-                  className="search-form"
+                  className="search-form catalog-search-bar"
                   onSubmit={(e) => {
                     e.preventDefault();
                     generation.current++;
@@ -1295,6 +1335,14 @@ export default function Portal({
                     setRevision((n) => n + 1);
                   }}
                 >
+                  <CategoryFilter
+                    api={prescriptionApi}
+                    value={category}
+                    onChange={(value) => {
+                      setCategory(value);
+                      setPage(1);
+                    }}
+                  />
                   <MedicineSearch
                     label="Search medicine names"
                     value={search}
@@ -1316,14 +1364,6 @@ export default function Portal({
                     disabled={busy}
                     onSelect={(m) => navigate({ kind: "medicine", id: m.id })}
                   />
-                  <CategoryFilter
-                    api={prescriptionApi}
-                    value={category}
-                    onChange={(value) => {
-                      setCategory(value);
-                      setPage(1);
-                    }}
-                  />
                   <button disabled={busy}>Search</button>
                 </form>
                 <DirectoryFilterFields
@@ -1338,7 +1378,7 @@ export default function Portal({
                   Search by name, ingredient, laboratory, category, barcode,
                   MIPH code, strength or packaging.
                 </p>
-                <div className="card-grid">
+                <div className="card-grid medicine-results">
                   {medicines.map((m) => (
                     <button
                       aria-label={`Open ${m.name}`}
@@ -1524,6 +1564,7 @@ export default function Portal({
               area !== "Home" &&
               area !== "More" &&
               area !== "Prescriptions" &&
+              !isDirectoryArea(area) &&
               pages > 1 && (
                 <nav className="pagination" aria-label="Pagination">
                   <button

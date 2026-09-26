@@ -1,4 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+async function chooseFilter(page: Page, label: string, option: string) {
+  await page.getByRole("button", { name: label, exact: true }).click();
+  const search = page.getByRole("searchbox", { name: `Search ${label.toLowerCase()}`, exact: true });
+  await search.fill("no-such-option");
+  await expect(page.getByText("No matching options.")).toBeVisible();
+  await search.fill(option);
+  await page.getByRole("button", { name: option, exact: true }).click();
+  await expect(search).toBeHidden();
+}
 const medicine = {
   id: "demo-one",
   name: "Alpha medicine",
@@ -76,9 +85,7 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
   await expect(
     page.getByRole("img", { name: "Box image not available" }),
   ).toBeVisible();
-  await page
-    .getByLabel("Category", { exact: true })
-    .selectOption("category-one");
+  await chooseFilter(page, 'Category', 'Allergy');
   await expect
     .poll(() =>
       calls.some(
@@ -86,13 +93,9 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
       ),
     )
     .toBe(true);
-  await page
-    .getByLabel("Laboratory (registration holder)", { exact: true })
-    .selectOption("Test Laboratory");
-  await page
-    .getByLabel("Laboratory country", { exact: true })
-    .selectOption("ALGERIE");
-  await page.getByLabel("Dosage form", { exact: true }).selectOption("Tablet");
+  await chooseFilter(page, 'Laboratory (registration holder)', 'Test Laboratory');
+  await chooseFilter(page, 'Laboratory country', 'ALGERIE');
+  await chooseFilter(page, 'Dosage form', 'Tablet');
   await expect
     .poll(() =>
       calls.some(
@@ -104,9 +107,7 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
       ),
     )
     .toBe(true);
-  await page
-    .getByLabel("Registration status", { exact: true })
-    .selectOption("WITHDRAWN");
+  await chooseFilter(page, 'Registration status', 'Withdrawn');
   await expect
     .poll(() =>
       calls.some(
@@ -115,9 +116,14 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
       ),
     )
     .toBe(true);
-  await page
-    .getByLabel("Registration status", { exact: true })
-    .selectOption("ACTIVE");
+  await chooseFilter(page, 'Registration status', 'Active medicines');
+  const columns = await page.locator(".medicine-results").evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+  expect(columns).toBe(info.project.name.startsWith("desktop") ? 4 : 1);
+  const categoryBox = await page.getByRole("button", { name: "Category", exact: true }).boundingBox();
+  const searchBox = await page.getByRole("combobox", { name: "Search medicine names" }).boundingBox();
+  const submitBox = await page.locator(".catalog-search-bar > button").boundingBox();
+  expect(categoryBox!.x).toBeLessThan(searchBox!.x);
+  expect(searchBox!.x).toBeLessThan(submitBox!.x);
   const input = page.getByRole("combobox", { name: "Search medicine names" });
   const beforeWildcard = calls.length;
   await input.fill(" * ");

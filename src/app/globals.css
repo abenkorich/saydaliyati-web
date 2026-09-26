@@ -720,3 +720,55 @@ select:focus-visible {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
 }
+
+
+.care-directory-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.care-directory-tabs [aria-current="page"] { background: var(--primary); color: white; }
+.care-directory-search { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
+.care-directory-search label { flex: 1 1 220px; min-width: 0; }
+.care-directory-search input { width: 100%; }
+.care-directory-card { min-width: 0; overflow-wrap: anywhere; }
+.care-directory-card h2 { margin: 0; }
+.care-directory-card dl { margin: 0; display: grid; gap: 12px; }
+.care-directory-card dt { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+.care-directory-card dd { margin: 0; }
+.care-directory-contacts { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.care-directory-contacts a { color: var(--primary); text-underline-offset: 3px; }
+.care-specialty { color: var(--primary); font-weight: 600; }
+@media (max-width: 640px) {
+  .care-directory-search > button { flex: 1 1 auto; }
+}
+
+/* Searchable catalog controls */
+.searchable-filter { position:relative; min-width:0; text-align:start; }
+.filter-label { display:block; font-size:13px; font-weight:600; margin-bottom:7px; }
+.searchable-filter summary { display:flex; align-items:center; justify-content:space-between; gap:10px; list-style:none; border:1px solid #ccdad7; border-radius:10px; padding:13px; background:white; cursor:pointer; }
+.searchable-filter summary::-webkit-details-marker { display:none; }
+.searchable-filter summary > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.searchable-filter summary:focus-visible { outline:3px solid #087f7b; outline-offset:2px; }
+.filter-popover { position:absolute; z-index:50; inset-inline-start:0; top:calc(100% + 8px); width:max(100%, 240px); max-width:calc(100vw - 48px); padding:10px; border:1px solid #ccdad7; border-radius:14px; background:white; box-shadow:0 12px 30px #1233; }
+.filter-popover input { width:100%; min-width:0; margin-bottom:8px; }
+.filter-options { max-height:260px; overflow:auto; }
+.filter-options .filter-option { display:flex; justify-content:space-between; gap:12px; width:100%; text-align:start; border:0; background:white; color:#172321; padding:11px; border-radius:8px; min-height:44px; font-weight:400; }
+.filter-option:hover,.filter-option:focus-visible,.filter-option[aria-pressed=true] { background:#e4f2ef; }
+.catalog-search-bar.search-form { width:100%; max-width:none; display:flex; flex-wrap:nowrap; align-items:center; gap:0; padding:6px; border:1px solid #b7ccc4; border-radius:16px; background:white; box-shadow:0 4px 16px #1231; }
+.catalog-search-bar .category-filter { width:190px; min-width:0; flex:0 0 190px; border-right:1px solid #d9e5df; padding-right:8px; }
+.catalog-search-bar .filter-label,.catalog-search-bar .medicine-search > label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.catalog-search-bar .searchable-filter summary { border:0; }
+.catalog-search-bar .medicine-search { flex:1 1 auto; width:auto; padding-inline:8px; }
+.catalog-search-bar .medicine-search input { min-height:50px; border:0; margin:0; background:transparent; }
+.catalog-search-bar > button { flex:0 0 auto; min-height:50px; padding-inline:26px; border-radius:11px; }
+.medicine-results.card-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.medicine-results > .card { min-width:0; padding:18px; overflow-wrap:anywhere; }
+@media(max-width:1100px) { .medicine-results.card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) {
+ .catalog-search-bar .category-filter { flex-basis:105px; width:105px; padding-right:3px; }
+ .catalog-search-bar.search-form .medicine-search { flex:1 1 0; padding-inline:3px; }
+ .catalog-search-bar > button { width:auto; padding-inline:12px; }
+ .catalog-search-bar .searchable-filter summary { padding-inline:6px; font-size:12px; }
+ .catalog-search-bar .medicine-search input { padding-inline:5px; font-size:14px; }
+ .medicine-results.card-grid { grid-template-columns:minmax(0,1fr); }
+}
+.catalog-search-bar { position:relative; }
+.catalog-search-bar .medicine-search { position:static; }
+.catalog-search-bar .medicine-suggestions { inset-inline:0; top:calc(100% + 8px); width:100%; }

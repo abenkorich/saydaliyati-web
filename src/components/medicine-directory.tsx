@@ -1,4 +1,5 @@
 "use client";
+import { SearchableFilter } from "./searchable-filter";
 import { useEffect, useState } from "react";
 import type { Request } from "./prescription-model";
 export type DirectoryFilters = {
@@ -90,37 +91,13 @@ export function DirectoryFilterFields({
           ["dosageForm", "Dosage form", options.dosageForms],
         ] as const
       ).map(([key, label, values]) => (
-        <label key={key}>
-          {label}
-          <select
-            aria-label={label}
-            value={value[key]}
-            onChange={(e) => onChange({ ...value, [key]: e.target.value })}
-          >
-            <option value="">All</option>
-            {(values ?? []).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SearchableFilter key={key} label={label} value={value[key]}
+          options={[{ value: "", label: "All" }, ...(values ?? []).map(option => ({ value: option, label: option }))]}
+          onChange={selected => onChange({ ...value, [key]: selected })} />
       ))}
-      <label>
-        Registration status
-        <select
-          aria-label="Registration status"
-          value={value.registrationStatus}
-          onChange={(e) =>
-            onChange({ ...value, registrationStatus: e.target.value })
-          }
-        >
-          <option value="ACTIVE">Active medicines</option>
-          <option value="ALL">All records</option>
-          <option value="NOT_RENEWED">Not renewed</option>
-          <option value="WITHDRAWN">Withdrawn</option>
-        </select>
-      </label>
+      <SearchableFilter label="Registration status" value={value.registrationStatus}
+        options={[{ value: "ACTIVE", label: "Active medicines" }, { value: "ALL", label: "All records" }, { value: "NOT_RENEWED", label: "Not renewed" }, { value: "WITHDRAWN", label: "Withdrawn" }]}
+        onChange={selected => onChange({ ...value, registrationStatus: selected })} />
       <button
         type="button"
         className="secondary"

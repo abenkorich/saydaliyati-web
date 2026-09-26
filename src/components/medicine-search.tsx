@@ -1,4 +1,5 @@
 "use client";
+import { SearchableFilter } from "./searchable-filter";
 import "./medicine-search.css";
 import { useEffect, useId, useState } from "react";
 import type { Request } from "./prescription-model";
@@ -271,21 +272,9 @@ export function CategoryFilter({
     };
   }, [api]);
   return (
-    <label className="category-filter">
-      Category
-      <select
-        aria-label="Category"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">All categories</option>
-        <option value="uncategorized">Uncategorized</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="category-filter">
+      <SearchableFilter label="Category" value={value} onChange={onChange}
+        options={[{ value: "", label: "All categories" }, { value: "uncategorized", label: "Uncategorized" }, ...categories.map(c => ({ value: c.id, label: c.name }))]} />
+    </div>
   );
 }
