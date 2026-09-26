@@ -1048,6 +1048,7 @@ export default function Portal({
                   <AddStock
                     key={medicine.id}
                     medicineId={medicine.id}
+                    medicine={medicine}
                     busy={busy}
                     disabled={stockUncertain}
                     save={(body) =>

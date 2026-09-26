@@ -1,5 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { suggestedStockUnit, type StockPresentation } from "./stock-unit";
 import { MedicineImage } from "./medicine-search";
 export type StockItem = {
   id: string;
@@ -182,17 +183,19 @@ export function HomeOverview({
 }
 export function AddStock({
   medicineId,
+  medicine,
   busy,
   disabled,
   save,
 }: {
   medicineId: string;
+  medicine: StockPresentation;
   busy: boolean;
   disabled: boolean;
   save(body: Record<string, unknown>): void;
 }) {
   const [quantity, setQuantity] = useState(""),
-    [unit, setUnit] = useState(""),
+    [unit, setUnit] = useState(() => suggestedStockUnit(medicine)),
     [expiry, setExpiry] = useState(""),
     [error, setError] = useState("");
   function submit(event: FormEvent) {
@@ -246,6 +249,7 @@ export function AddStock({
       <label>
         Stock unit
         <select
+          aria-label="Stock unit"
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
           disabled={busy || disabled}
