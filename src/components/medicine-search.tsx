@@ -1,4 +1,5 @@
 "use client";
+import "./medicine-search.css";
 import { useEffect, useId, useState } from "react";
 import type { Request } from "./prescription-model";
 
@@ -76,6 +77,8 @@ export function MedicineSearch({
   api,
   category = "",
   disabled = false,
+  filters = "",
+  suggestionsEnabled = true,
   label = "Search medicines",
   name,
 }: {
@@ -85,6 +88,8 @@ export function MedicineSearch({
   api?: Request;
   category?: string;
   disabled?: boolean;
+  filters?: string;
+  suggestionsEnabled?: boolean;
   label?: string;
   name?: string;
 }) {
@@ -92,7 +97,7 @@ export function MedicineSearch({
   const [focused, setFocused] = useState(false);
   const [index, setIndex] = useState(-1);
   const query = value.trim();
-  const key = `${category}|${query}`;
+  const key = `${category}|${filters}|${query}`;
   const [state, setState] = useState<{
     key: string;
     data: CatalogItem[];
@@ -100,13 +105,13 @@ export function MedicineSearch({
     loading: boolean;
   }>({ key: "", data: [], error: "", loading: false });
   useEffect(() => {
-    if (!focused || disabled || query.length < 2) return;
+    if (!focused || disabled || !suggestionsEnabled || query.length < 2) return;
     let current = true;
     const timer = setTimeout(() => {
       setState({ key, data: [], error: "", loading: true });
       const request = api ?? publicSearch;
       void request<CatalogItem[]>(
-        `/medicines/suggestions?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}`,
+        `/medicines/suggestions?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}${filters}`,
       )
         .then((r) => {
           if (current)
@@ -126,9 +131,22 @@ export function MedicineSearch({
       current = false;
       clearTimeout(timer);
     };
-  }, [api, category, disabled, focused, key, query]);
+  }, [
+    api,
+    category,
+    disabled,
+    focused,
+    key,
+    query,
+    filters,
+    suggestionsEnabled,
+  ]);
   const current =
-    state.key === key && focused && !disabled && query.length >= 2;
+    state.key === key &&
+    focused &&
+    !disabled &&
+    suggestionsEnabled &&
+    query.length >= 2;
   const results = current ? state.data : [];
   const expanded =
     current && (results.length > 0 || state.loading || !!state.error);
@@ -159,7 +177,7 @@ export function MedicineSearch({
         aria-expanded={expanded}
         aria-controls={`${id}-options`}
         aria-activedescendant={results[index] ? `${id}-${index}` : undefined}
-        placeholder="Name or active ingredient"
+        placeholder="Name, ingredient, laboratory, barcode or MIPH code"
         onFocus={() => setFocused(true)}
         onChange={(e) => {
           onChange(e.target.value);
@@ -191,6 +209,7 @@ export function MedicineSearch({
       />
       <div
         id={`${id}-options`}
+        hidden={!expanded}
         role="listbox"
         aria-label="Medicine suggestions"
         className={

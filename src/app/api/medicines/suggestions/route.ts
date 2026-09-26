@@ -10,6 +10,8 @@ export async function GET(request: Request) {
       `${base.replace(/\/$/, "").replace(/\/api\/v1$/, "")}/api/v1/medicines/suggestions`,
     );
     url.searchParams.set("q", q);
+    const category = new URL(request.url).searchParams.get("category");
+    if (category) url.searchParams.set("category", category);
     const result = await fetch(url, {
       cache: "no-store",
       signal: AbortSignal.timeout(10000),

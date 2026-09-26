@@ -1,4 +1,11 @@
 "use client";
+import {
+  DirectoryFilterFields,
+  MedicineDirectoryDetails,
+  directoryParams,
+  emptyDirectoryFilters,
+  type DirectoryDetails,
+} from "./medicine-directory";
 
 import Image from "next/image";
 
@@ -38,7 +45,7 @@ type Area =
   | "Medicines"
   | "Inbox"
   | "Settings";
-type Medicine = {
+type Medicine = DirectoryDetails & {
   boxImageUrl?: string | null;
   category?: { id: string; name: string; slug: string } | null;
   id: string;
@@ -208,6 +215,7 @@ function MedicineCard({ medicine }: { medicine: Medicine }) {
           </div>
         ))}
       </dl>
+      <MedicineDirectoryDetails medicine={medicine} />
       <p>{medicine.description ?? "No description supplied."}</p>
     </section>
   );
@@ -254,6 +262,9 @@ export default function Portal({
     [firstName, setFirstName] = useState(""),
     [lastName, setLastName] = useState("");
   const [category, setCategory] = useState("");
+  const [directoryFilters, setDirectoryFilters] = useState(
+    emptyDirectoryFilters,
+  );
   const [search, setSearch] = useState(""),
     [term, setTerm] = useState(""),
     [page, setPage] = useState(1),
@@ -500,7 +511,7 @@ export default function Portal({
               ? "/me/notifications"
               : "/medicines";
         const r = await api<Medicine[] | Treatment[] | Notice[]>(
-          `${path}?page=${page}&limit=20${area === "Medicines" && term ? `&q=${encodeURIComponent(term)}` : ""}${area === "Medicines" && category ? `&category=${encodeURIComponent(category)}` : ""}`,
+          `${path}?page=${page}&limit=20${area === "Medicines" && term ? `&q=${encodeURIComponent(term)}` : ""}${area === "Medicines" && category ? `&category=${encodeURIComponent(category)}` : ""}${area === "Medicines" ? directoryParams(directoryFilters) : ""}`,
         );
         if (valid()) {
           setPages(Math.max(1, r.meta?.totalPages ?? 1));
@@ -528,6 +539,7 @@ export default function Portal({
     page,
     term,
     category,
+    directoryFilters,
     revision,
     report,
     backend,
@@ -1287,6 +1299,10 @@ export default function Portal({
                     onChange={setSearch}
                     api={prescriptionApi}
                     category={category}
+                    filters={directoryParams(directoryFilters, true)}
+                    suggestionsEnabled={
+                      directoryFilters.registrationStatus === "ACTIVE"
+                    }
                     disabled={busy}
                     onSelect={(m) => navigate({ kind: "medicine", id: m.id })}
                   />
@@ -1300,8 +1316,17 @@ export default function Portal({
                   />
                   <button disabled={busy}>Search</button>
                 </form>
+                <DirectoryFilterFields
+                  api={prescriptionApi}
+                  value={directoryFilters}
+                  onChange={(value) => {
+                    setDirectoryFilters(value);
+                    setPage(1);
+                  }}
+                />
                 <p className="intro muted">
-                  Search by brand or active ingredient.
+                  Search by name, ingredient, laboratory, category, barcode,
+                  MIPH code, strength or packaging.
                 </p>
                 <div className="card-grid">
                   {medicines.map((m) => (
@@ -1315,6 +1340,10 @@ export default function Portal({
                       <MedicineImage medicine={m} />
                       <span className="medicine-category">
                         {m.category?.name ?? "Uncategorized"}
+                      </span>
+                      <p className="muted">{m.registrationHolder}</p>
+                      <span className="badge">
+                        {m.regulatoryStatus ?? m.status}
                       </span>
                       <Demo medicine={m} />
                       <h2>{m.name}</h2>
