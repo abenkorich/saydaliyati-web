@@ -30,7 +30,6 @@ type Result = {
   meta?: { total?: number; totalPages?: number };
 };
 const areas: { key: Area; label: string; icon: string }[] = [
-  { key: "ai", label: "AI", icon: "✦" },
   { key: "geography", label: "Countries & locations", icon: "◎" },
   { key: "overview", label: "Overview", icon: "◫" },
   { key: "users", label: "Users", icon: "◉" },
@@ -39,6 +38,7 @@ const areas: { key: Area; label: string; icon: string }[] = [
   { key: "pharmacies", label: "Pharmacies", icon: "⊞" },
   { key: "hospitals", label: "Hospitals", icon: "▥" },
   { key: "settings", label: "Settings", icon: "⚙" },
+  { key: "ai", label: "AI", icon: "✦" },
   { key: "transfers", label: "Import & Export", icon: "⇄" },
   { key: "subscriptions", label: "Subscriptions", icon: "◇" },
 ];
@@ -277,7 +277,18 @@ export function Admin() {
               {error}
             </p>
           )}
-          {area === "ai" ? (<AiAdmin key={session} version={session} expired={() => {setSession(null);setError("Your administrator session ended. Please sign in again.");}} />) : area === "geography" ? (
+          {area === "ai" ? (
+            <AiAdmin
+              key={session}
+              version={session}
+              expired={() => {
+                setSession(null);
+                setError(
+                  "Your administrator session ended. Please sign in again.",
+                );
+              }}
+            />
+          ) : area === "geography" ? (
             <Geography version={session} />
           ) : area === "transfers" ? (
             <DataTransfer

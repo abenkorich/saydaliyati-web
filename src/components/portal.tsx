@@ -298,6 +298,9 @@ export default function Portal({
     } | null>(null),
     [recordUncertain, setRecordUncertain] = useState(false);
   const sessionVersion = useRef<string | null>(null);
+  const [visibleSessionVersion, setVisibleSessionVersion] = useState<
+    string | null
+  >(null);
   const backend = useCallback(
     <T,>(path: string, method = "GET", body?: unknown, signal?: AbortSignal) =>
       request<T>(path, method, body, signal, sessionVersion.current),
@@ -329,6 +332,7 @@ export default function Portal({
     setStockUncertain(false);
     setQuickOpen(false);
     sessionVersion.current = null;
+    setVisibleSessionVersion(null);
     setFieldErrors({});
     setMedicines([]);
     setTreatments([]);
@@ -367,6 +371,7 @@ export default function Portal({
         if (result.data.authenticated && !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         sessionVersion.current = result.data.sessionVersion ?? null;
+        setVisibleSessionVersion(result.data.sessionVersion ?? null);
         if (result.data.authenticated) {
           setLogoutFailed(false);
           openPendingSearch();
@@ -690,6 +695,7 @@ export default function Portal({
         clearPrivate();
         openPendingSearch();
         sessionVersion.current = result.data.sessionVersion;
+        setVisibleSessionVersion(result.data.sessionVersion);
         setLogoutFailed(false);
         setSession("signed-in");
         channel.current?.postMessage("session-changed");
@@ -1257,8 +1263,8 @@ export default function Portal({
             )}
             {listVisible && isDirectoryArea(area) && (
               <HealthcareDirectory
-                version={sessionVersion.current ?? ""}
-                key={area}
+                version={visibleSessionVersion ?? ""}
+                key={`${visibleSessionVersion}:${area}`}
                 area={area}
                 api={prescriptionApi}
                 report={report}
