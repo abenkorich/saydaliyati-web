@@ -27,6 +27,20 @@ export async function GET(request: Request): Promise<Response> {
     if (!authenticated) return json({ data: { authenticated: false } });
     const sessionVersion = await sessions.sessionVersion(id);
     const result = await sessions.request(id, "me/profile", {}, sessionVersion);
+    if (result.status === 403) {
+      const admin = await sessions.request(
+        id,
+        "admin/overview",
+        {},
+        sessionVersion,
+      );
+      if (admin.ok)
+        return json({
+          data: { authenticated: true, sessionVersion, role: "ADMIN" },
+        });
+      if (admin.status !== 403 && admin.status !== 401)
+        return failure(new Error("Upstream unavailable"));
+    }
     if (!result.ok) {
       if (result.status === 401 || result.status === 403) {
         await sessions.logout(id);

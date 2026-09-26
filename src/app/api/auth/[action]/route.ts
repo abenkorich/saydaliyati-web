@@ -38,13 +38,21 @@ export async function POST(
       body: input,
     });
     if (!response.ok) return relay(response);
+    const payload = await response.json();
+    const role = payload?.data?.user?.role;
     const sessionVersion = await sessions.completeAuthentication(
       existing,
       version,
-      await response.json(),
+      payload,
     );
     return json(
-      { data: { authenticated: true, sessionVersion } },
+      {
+        data: {
+          authenticated: true,
+          sessionVersion,
+          ...(typeof role === "string" ? { role } : {}),
+        },
+      },
       response.status,
     );
   } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 import { SearchableFilter } from "./searchable-filter";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Request } from "./prescription-model";
 export type DirectoryFilters = {
   laboratory: string;
@@ -51,7 +51,9 @@ export function DirectoryFilterFields({
   api,
   value,
   onChange,
+  children,
 }: {
+  children?: ReactNode;
   api: Request;
   value: DirectoryFilters;
   onChange(value: DirectoryFilters): void;
@@ -100,11 +102,13 @@ export function DirectoryFilterFields({
         onChange={selected => onChange({ ...value, registrationStatus: selected })} />
       <button
         type="button"
-        className="secondary"
+        className="secondary directory-reset"
+        aria-label="Reset details filters"
         onClick={() => onChange(emptyDirectoryFilters)}
       >
-        Reset details filters
+        Reset
       </button>
+      {children}
       {failed && (
         <small role="status">
           Filter options unavailable. You can still search by laboratory or

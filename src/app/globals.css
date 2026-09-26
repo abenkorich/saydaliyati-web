@@ -772,3 +772,35 @@ select:focus-visible {
 .catalog-search-bar { position:relative; }
 .catalog-search-bar .medicine-search { position:static; }
 .catalog-search-bar .medicine-suggestions { inset-inline:0; top:calc(100% + 8px); width:100%; }
+
+.directory-filters { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; }
+.directory-filters > .searchable-filter { flex:1 1 140px; }
+.directory-filters .filter-label { font-size:12px; }
+.directory-filters > .directory-reset { flex:0 0 auto; min-height:47px; padding-inline:16px; }
+.result-view-controls { display:flex; align-items:flex-end; gap:8px; margin-inline-start:auto; }
+.result-view-toggle { display:flex; padding:4px; gap:2px; border:1px solid #ccdad7; border-radius:11px; background:white; }
+.result-view-toggle button { display:flex; align-items:center; gap:5px; min-height:37px; padding:8px 10px; border:0; border-radius:7px; color:#52675e; background:transparent; }
+.result-view-toggle button[aria-pressed=true] { color:#087f7b; background:#e4f2ef; }
+.result-view-toggle span { font-size:18px; line-height:1; }
+.result-columns { font-size:12px; }
+.result-columns select { min-height:47px; min-width:60px; }
+.medicine-results[data-columns="1"] { grid-template-columns:minmax(0,1fr); }
+.medicine-results[data-columns="2"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.medicine-results[data-columns="3"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.medicine-results[data-columns="4"] { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.medicine-result-content { display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; }
+.medicine-results[data-view="list"] > .card { display:grid; grid-template-columns:90px minmax(0,1fr); align-items:center; gap:18px; }
+.medicine-results[data-view="list"] .medicine-image { min-height:90px; height:90px; margin:0; }
+.medicine-results[data-view="list"] .medicine-image img { height:90px; }
+.medicine-results[data-view="list"] .medicine-image small { display:none; }
+.medicine-results[data-view="list"] .medicine-result-content { display:block; }
+.medicine-results[data-view="list"] .medicine-result-content > * { margin-block:4px; }
+.medicine-results[data-view="list"] h2 { font-size:20px; }
+@media(max-width:900px) { .medicine-results[data-columns="3"],.medicine-results[data-columns="4"] { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) {
+ .medicine-results[data-columns] { grid-template-columns:minmax(0,1fr); }
+ .directory-filters > .searchable-filter { flex-basis:calc(50% - 10px); }
+ .result-view-controls { margin-inline-start:auto; }
+ .medicine-results[data-view="list"] > .card { grid-template-columns:64px minmax(0,1fr); gap:12px; }
+ .medicine-results[data-view="list"] .medicine-image { height:64px; min-height:64px; }
+}

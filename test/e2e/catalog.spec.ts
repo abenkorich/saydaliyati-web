@@ -119,6 +119,17 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
   await chooseFilter(page, 'Registration status', 'Active medicines');
   const columns = await page.locator(".medicine-results").evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
   expect(columns).toBe(info.project.name.startsWith("desktop") ? 4 : 1);
+  for (const [view, counts] of [["List", [1, 2]], ["Grid", [2, 3, 4]]] as const) {
+    await page.getByRole("button", { name: view, exact: true }).click();
+    await expect(page.getByRole("button", { name: view, exact: true })).toHaveAttribute("aria-pressed", "true");
+    for (const count of counts) {
+      await page.getByLabel("Result columns").selectOption(String(count));
+      await expect(page.locator(".medicine-results")).toHaveAttribute("data-columns", String(count));
+      const actual = await page.locator(".medicine-results").evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+      expect(actual).toBe(info.project.name.startsWith("desktop") ? count : 1);
+    }
+  }
+  await expect(page.getByRole("button", { name: "Category", exact: true })).toContainText("Allergy");
   const categoryBox = await page.getByRole("button", { name: "Category", exact: true }).boundingBox();
   const searchBox = await page.getByRole("combobox", { name: "Search medicine names" }).boundingBox();
   const submitBox = await page.locator(".catalog-search-bar > button").boundingBox();

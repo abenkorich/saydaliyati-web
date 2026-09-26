@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createServer } from "node:http";
 import { GET as adminSession } from "../src/app/api/admin/session/route";
+import { GET as patientSession } from "../src/app/api/session/route";
 import { POST as auth } from "../src/app/api/auth/[action]/route";
 import { closeRedisStore } from "../src/server/redis-store";
 test(
@@ -16,6 +17,7 @@ test(
         res.end(
           JSON.stringify({
             data: {
+              user: { id: "synthetic-admin", role: "ADMIN" },
               accessToken: "synthetic-admin-access",
               refreshToken: "synthetic-admin-refresh",
             },
@@ -34,6 +36,9 @@ test(
               : { error: { code: "FORBIDDEN" } },
           ),
         );
+      } else if (req.url === "/api/v1/me/profile") {
+        res.statusCode = 403;
+        res.end('{"error":{"code":"FORBIDDEN"}}');
       } else res.end('{"data":{}}');
     });
     await new Promise<void>((resolve) =>
@@ -66,7 +71,10 @@ test(
         { params: Promise.resolve({ action: "login" }) },
       );
       assert.equal(login.status, 200);
-      const version = (await login.json()).data.sessionVersion;
+      const loginData = (await login.json()).data;
+      assert.equal(loginData.role, "ADMIN");
+      assert.equal(loginData.accessToken, undefined);
+      const version = loginData.sessionVersion;
       const denied = await adminSession(request("/api/admin/session"));
       assert.equal(denied.status, 403);
       assert.equal(denied.headers.get("set-cookie"), null);
@@ -77,6 +85,16 @@ test(
       assert.deepEqual(await accepted.json(), {
         data: { authenticated: true, sessionVersion: version },
       });
+      const restoredInPortal = await patientSession(request("/api/session"));
+      assert.equal(restoredInPortal.status, 200);
+      assert.equal(restoredInPortal.headers.get("set-cookie"), null);
+      assert.deepEqual(await restoredInPortal.json(), {
+        data: { authenticated: true, sessionVersion: version, role: "ADMIN" },
+      });
+      assert.equal(
+        (await adminSession(request("/api/admin/session"))).status,
+        200,
+      );
       await auth(request("/api/auth/logout", "POST", {}), {
         params: Promise.resolve({ action: "logout" }),
       });

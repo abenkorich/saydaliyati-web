@@ -101,7 +101,11 @@ type Flags = {
   sharingNotifications: boolean;
   systemNotifications: boolean;
 };
-type SessionState = { authenticated: boolean; sessionVersion?: string };
+type SessionState = {
+  authenticated: boolean;
+  sessionVersion?: string;
+  role?: string;
+};
 type Result<T> = { data: T; meta?: { totalPages?: number; total?: number } };
 type View =
   | { kind: "list" }
@@ -267,6 +271,9 @@ export default function Portal({
     [password, setPassword] = useState(""),
     [firstName, setFirstName] = useState(""),
     [lastName, setLastName] = useState("");
+  const [resultView, setResultView] = useState<"grid" | "list">("grid");
+  const [gridColumns, setGridColumns] = useState(4);
+  const [listColumns, setListColumns] = useState(1);
   const [category, setCategory] = useState("");
   const [directoryFilters, setDirectoryFilters] = useState(
     emptyDirectoryFilters,
@@ -353,6 +360,10 @@ export default function Portal({
     try {
       const result = await request<SessionState>("/api/session");
       if (epoch === generation.current) {
+        if (result.data.role === "ADMIN") {
+          window.location.replace("/admin");
+          return;
+        }
         if (result.data.authenticated && !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         sessionVersion.current = result.data.sessionVersion ?? null;
@@ -659,6 +670,21 @@ export default function Portal({
       });
       if (!result) return;
       if (valid()) {
+        if (result.data.role === "ADMIN") {
+          channel.current?.postMessage("session-changed");
+          window.location.replace("/admin");
+          return;
+        }
+        if (result.data.role && result.data.role !== "PATIENT") {
+          await request("/api/auth/logout", "POST", {});
+          clearPrivate();
+          setSession("signed-out");
+          setError(
+            "This portal requires a patient account. Sign in with a patient account to manage your pharmacy and treatments.",
+          );
+          channel.current?.postMessage("session-changed");
+          return;
+        }
         if (!result.data.authenticated || !result.data.sessionVersion)
           throw new RequestError(503, "SERVICE_UNAVAILABLE");
         clearPrivate();
@@ -1373,12 +1399,63 @@ export default function Portal({
                     setDirectoryFilters(value);
                     setPage(1);
                   }}
-                />
+                >
+                  <div className="result-view-controls">
+                    <div
+                      className="result-view-toggle"
+                      role="group"
+                      aria-label="Results view"
+                    >
+                      <button
+                        type="button"
+                        aria-pressed={resultView === "grid"}
+                        onClick={() => setResultView("grid")}
+                      >
+                        <span aria-hidden="true">▦</span> Grid
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={resultView === "list"}
+                        onClick={() => setResultView("list")}
+                      >
+                        <span aria-hidden="true">☷</span> List
+                      </button>
+                    </div>
+                    <label className="result-columns">
+                      Columns
+                      <select
+                        aria-label="Result columns"
+                        value={
+                          resultView === "grid" ? gridColumns : listColumns
+                        }
+                        onChange={(event) => {
+                          const count = Number(event.target.value);
+                          if (resultView === "grid") setGridColumns(count);
+                          else setListColumns(count);
+                        }}
+                      >
+                        {(resultView === "grid" ? [2, 3, 4] : [1, 2]).map(
+                          (count) => (
+                            <option key={count} value={count}>
+                              {count}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+                  </div>
+                </DirectoryFilterFields>
                 <p className="intro muted">
                   Search by name, ingredient, laboratory, category, barcode,
                   MIPH code, strength or packaging.
                 </p>
-                <div className="card-grid medicine-results">
+                <div
+                  className="card-grid medicine-results"
+                  data-view={resultView}
+                  data-columns={
+                    resultView === "grid" ? gridColumns : listColumns
+                  }
+                >
                   {medicines.map((m) => (
                     <button
                       aria-label={`Open ${m.name}`}
@@ -1388,21 +1465,23 @@ export default function Portal({
                       onClick={() => navigate({ kind: "medicine", id: m.id })}
                     >
                       <MedicineImage medicine={m} />
-                      <span className="medicine-category">
-                        {m.category?.name ?? "Uncategorized"}
-                      </span>
-                      <p className="muted">{m.registrationHolder}</p>
-                      <span className="badge">
-                        {m.regulatoryStatus ?? m.status}
-                      </span>
-                      <Demo medicine={m} />
-                      <h2>{m.name}</h2>
-                      <p className="muted">
-                        {[m.genericName, m.strength, m.dosageForm]
-                          .filter(Boolean)
-                          .join(" · ") || "Details not supplied"}
-                      </p>
-                      <span className="card-link">View medicine →</span>
+                      <div className="medicine-result-content">
+                        <span className="medicine-category">
+                          {m.category?.name ?? "Uncategorized"}
+                        </span>
+                        <p className="muted">{m.registrationHolder}</p>
+                        <span className="badge">
+                          {m.regulatoryStatus ?? m.status}
+                        </span>
+                        <Demo medicine={m} />
+                        <h2>{m.name}</h2>
+                        <p className="muted">
+                          {[m.genericName, m.strength, m.dosageForm]
+                            .filter(Boolean)
+                            .join(" · ") || "Details not supplied"}
+                        </p>
+                        <span className="card-link">View medicine →</span>
+                      </div>
                     </button>
                   ))}
                 </div>
