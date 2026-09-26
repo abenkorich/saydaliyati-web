@@ -148,6 +148,10 @@ export function AiAdmin({
     });
     const result = await response.json();
     if (!response.ok) {
+      if (response.status === 404)
+        throw new Error(
+          "AI administration is not available on the connected API. Deploy the AI API release and its database migration, then refresh this page.",
+        );
       if ([401, 403, 409].includes(response.status) && !signal.aborted)
         expiredRef.current();
       throw new Error(

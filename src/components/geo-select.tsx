@@ -38,7 +38,11 @@ export async function geoRequest(
   });
   const result = await response.json();
   if (!response.ok)
-    throw new Error(result.error?.message ?? "Unable to load locations.");
+    throw new Error(
+      response.status === 404 && path.startsWith("/geography/")
+        ? "Locations are not available on the connected API. Deploy the geography API release and its database migration."
+        : (result.error?.message ?? "Unable to load locations."),
+    );
   return result;
 }
 export function GeoSelect({
@@ -46,45 +50,49 @@ export function GeoSelect({
   value,
   onChange,
   disabled = false,
+  depth = 3,
 }: {
   version: string;
   value: LocationValue;
   onChange(v: LocationValue): void;
   disabled?: boolean;
+  depth?: 1 | 2 | 3;
 }) {
   return (
     <div className="geo-selects">
       {Object.entries(value).map(([name, val]) => (
         <input key={name} type="hidden" name={name} value={val} />
       ))}
-      {(["countries", "wilayas", "communes"] as const).map((kind, index) => {
-        const key = (["countryId", "wilayaId", "communeId"] as const)[index]!;
-        const parentId =
-          index === 1
-            ? value.countryId
-            : index === 2
-              ? value.wilayaId
-              : undefined;
-        return (
-          <GeoOption
-            key={kind}
-            kind={kind}
-            version={version}
-            parentId={parentId}
-            value={value[key]}
-            disabled={disabled}
-            onChange={(id) =>
-              onChange(
-                index === 0
-                  ? { countryId: id, wilayaId: "", communeId: "" }
-                  : index === 1
-                    ? { ...value, wilayaId: id, communeId: "" }
-                    : { ...value, communeId: id },
-              )
-            }
-          />
-        );
-      })}
+      {(["countries", "wilayas", "communes"] as const)
+        .slice(0, depth)
+        .map((kind, index) => {
+          const key = (["countryId", "wilayaId", "communeId"] as const)[index]!;
+          const parentId =
+            index === 1
+              ? value.countryId
+              : index === 2
+                ? value.wilayaId
+                : undefined;
+          return (
+            <GeoOption
+              key={kind}
+              kind={kind}
+              version={version}
+              parentId={parentId}
+              value={value[key]}
+              disabled={disabled}
+              onChange={(id) =>
+                onChange(
+                  index === 0
+                    ? { countryId: id, wilayaId: "", communeId: "" }
+                    : index === 1
+                      ? { ...value, wilayaId: id, communeId: "" }
+                      : { ...value, communeId: id },
+                )
+              }
+            />
+          );
+        })}
     </div>
   );
 }

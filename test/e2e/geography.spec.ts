@@ -53,6 +53,7 @@ test("admin previews and imports geographic CSV and edits locations", async ({
   await page
     .getByRole("button", { name: "Countries & locations", exact: true })
     .click();
+  await page.locator(".geo-import summary").click();
   await page.getByLabel("CSV file").setInputFiles({
     name: "countries.csv",
     mimeType: "text/csv",
@@ -128,4 +129,104 @@ test("care directory cascades geographic filters and clears descendants", async 
     path: info.outputPath("geography-directory.png"),
     fullPage: true,
   });
+});
+
+test("geographic hierarchy keeps parent filters relevant and paginates search results", async ({
+  page,
+}, info) => {
+  const countries = Array.from({ length: 30 }, (_, i) => ({
+    ...country,
+    id: `country-${i}`,
+    code: String(i).padStart(2, "0"),
+    nameEnglish: `Country ${String(i).padStart(2, "0")}`,
+  }));
+  await page.route("**/api/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    return route.fulfill({
+      json: {
+        data:
+          path === "/api/admin/session"
+            ? { authenticated: true, sessionVersion: "geo-test" }
+            : path.endsWith("/countries")
+              ? countries
+              : path.endsWith("/wilayas")
+                ? [wilaya]
+                : path.endsWith("/communes")
+                  ? [commune]
+                  : {},
+        meta: {},
+      },
+    });
+  });
+  await page.goto("/admin");
+  await page
+    .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Countries & locations" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Edit Country 00", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("combobox")).toHaveCount(0);
+  await expect(page.getByLabel("CSV file")).toBeHidden();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Edit Country 29", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Search locations").fill("Country 05");
+  await expect(
+    page.getByRole("button", { name: "Edit Country 05", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Page 1 of 1")).toBeVisible();
+  await page.getByLabel("Search locations").fill("no matches");
+  await expect(
+    page.getByRole("heading", { name: "No matching locations" }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Geographic records" })
+    .getByRole("button", { name: /Wilayas/ })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "+ Add wilaya", exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByRole("combobox")).toHaveCount(1);
+  await page
+    .getByRole("combobox", { name: "Country", exact: true })
+    .selectOption("country-0");
+  await expect(
+    page.getByRole("button", { name: "Edit Adrar", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Geographic records" })
+    .getByRole("button", { name: /Communes/ })
+    .click();
+  await expect(page.getByRole("combobox")).toHaveCount(2);
+  await page
+    .getByRole("combobox", { name: "Wilaya / Province", exact: true })
+    .selectOption(wilaya.id);
+  await expect(
+    page.getByRole("button", { name: "Edit Adrar", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Search locations")).toHaveValue("");
+  await page
+    .getByRole("combobox", { name: "Country", exact: true })
+    .selectOption("");
+  await expect(
+    page.getByRole("combobox", { name: "Wilaya / Province", exact: true }),
+  ).toHaveValue("");
+  await expect(
+    page.getByRole("button", { name: "+ Add commune", exact: true }),
+  ).toBeDisabled();
+  await page.screenshot({
+    path: info.outputPath("organized-locations.png"),
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });

@@ -105,7 +105,9 @@ export function DataTransfer({
     if (!response.ok)
       throw new TransferError(
         response.status,
-        payload.error?.message ?? "Request failed.",
+        response.status === 404
+          ? "Import and export are not available on the connected API. Deploy the data-transfer API release and its database migration, then try again."
+          : (payload.error?.message ?? "Request failed."),
       );
     return payload.data as T;
   }
