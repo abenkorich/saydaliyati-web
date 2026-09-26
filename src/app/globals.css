@@ -704,3 +704,19 @@ select:focus-visible {
 .miph-details summary { cursor: pointer; font-weight: 600; padding-block: 12px; }
 .miph-details .facts { margin-block: 12px; }
 .facts dd, .facts dt { overflow-wrap: anywhere; }
+
+
+.medicine-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.medicine-detail-layout > * {
+  min-width: 0;
+}
+@media (min-width: 1024px) {
+  .medicine-detail-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}

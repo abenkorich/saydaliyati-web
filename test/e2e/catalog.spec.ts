@@ -119,6 +119,14 @@ test("catalog suggestions, image fallback, category filtering and keyboard selec
     .getByLabel("Registration status", { exact: true })
     .selectOption("ACTIVE");
   const input = page.getByRole("combobox", { name: "Search medicine names" });
+  const beforeWildcard = calls.length;
+  await input.fill(" * ");
+  await expect.poll(() => calls.slice(beforeWildcard).some(path => {
+    const url = new URL(path, "http://localhost");
+    return url.pathname.endsWith("/medicines") && !url.searchParams.has("q") &&
+      url.searchParams.get("category") === "category-one" && url.searchParams.get("page") === "1";
+  })).toBe(true);
+  await expect(page.getByRole("button", { name: "Open Alpha medicine" })).toBeVisible();
   await input.fill("a");
   await page.waitForTimeout(400);
   expect(calls.filter((p) => p.includes("/suggestions"))).toHaveLength(0);

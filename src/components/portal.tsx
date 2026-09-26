@@ -511,7 +511,7 @@ export default function Portal({
               ? "/me/notifications"
               : "/medicines";
         const r = await api<Medicine[] | Treatment[] | Notice[]>(
-          `${path}?page=${page}&limit=20${area === "Medicines" && term ? `&q=${encodeURIComponent(term)}` : ""}${area === "Medicines" && category ? `&category=${encodeURIComponent(category)}` : ""}${area === "Medicines" ? directoryParams(directoryFilters) : ""}`,
+          `${path}?page=${page}&limit=20${area === "Medicines" && term && term !== "*" ? `&q=${encodeURIComponent(term)}` : ""}${area === "Medicines" && category ? `&category=${encodeURIComponent(category)}` : ""}${area === "Medicines" ? directoryParams(directoryFilters) : ""}`,
         );
         if (valid()) {
           setPages(Math.max(1, r.meta?.totalPages ?? 1));
@@ -995,48 +995,50 @@ export default function Portal({
               </p>
             )}
             {view.kind === "medicine" && medicine && (
-              <div className="stack">
+              <div className="medicine-detail-layout">
                 <MedicineCard medicine={medicine} />
-                <AddStock
-                  key={medicine.id}
-                  medicineId={medicine.id}
-                  busy={busy}
-                  disabled={stockUncertain}
-                  save={(body) =>
-                    void action(async (valid) => {
-                      try {
-                        await backend(
-                          "/api/backend/me/inventory",
-                          "POST",
-                          body,
-                        );
-                        if (valid()) {
-                          navigate({ kind: "list" }, "My Pharmacy");
-                          setStockFilter("All");
-                          setPage(1);
-                          setSuccess("Medicine added to My Pharmacy.");
-                        }
-                      } catch (e) {
-                        if (valid()) {
-                          setStockUncertain(true);
-                          setError(
-                            `${message(e)} The result may be uncertain. Check My Pharmacy before adding this entry again.`,
+                <div className="medicine-stock-column stack">
+                  <AddStock
+                    key={medicine.id}
+                    medicineId={medicine.id}
+                    busy={busy}
+                    disabled={stockUncertain}
+                    save={(body) =>
+                      void action(async (valid) => {
+                        try {
+                          await backend(
+                            "/api/backend/me/inventory",
+                            "POST",
+                            body,
                           );
+                          if (valid()) {
+                            navigate({ kind: "list" }, "My Pharmacy");
+                            setStockFilter("All");
+                            setPage(1);
+                            setSuccess("Medicine added to My Pharmacy.");
+                          }
+                        } catch (e) {
+                          if (valid()) {
+                            setStockUncertain(true);
+                            setError(
+                              `${message(e)} The result may be uncertain. Check My Pharmacy before adding this entry again.`,
+                            );
+                          }
+                          if (e instanceof RequestError && e.status === 401)
+                            throw e;
                         }
-                        if (e instanceof RequestError && e.status === 401)
-                          throw e;
-                      }
-                    })
-                  }
-                />
-                {stockUncertain && (
-                  <button
-                    className="secondary"
-                    onClick={() => switchArea("My Pharmacy")}
-                  >
-                    Check My Pharmacy
-                  </button>
-                )}
+                      })
+                    }
+                  />
+                  {stockUncertain && (
+                    <button
+                      className="secondary"
+                      onClick={() => switchArea("My Pharmacy")}
+                    >
+                      Check My Pharmacy
+                    </button>
+                  )}
+                </div>
               </div>
             )}
             {view.kind === "treatment" && treatment && (
@@ -1296,7 +1298,15 @@ export default function Portal({
                   <MedicineSearch
                     label="Search medicine names"
                     value={search}
-                    onChange={setSearch}
+                    onChange={(value) => {
+                      setSearch(value);
+                      if (value.trim() === "*") {
+                        generation.current++;
+                        setTerm("*");
+                        setPage(1);
+                        setRevision((n) => n + 1);
+                      }
+                    }}
                     api={prescriptionApi}
                     category={category}
                     filters={directoryParams(directoryFilters, true)}
