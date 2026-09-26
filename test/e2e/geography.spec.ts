@@ -47,17 +47,19 @@ test("admin previews and imports geographic CSV and edits locations", async ({
   });
   await page.goto("/admin");
   await page
-    .getByRole("button", { name: "Countries & locations", exact: true })
+    .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
     .click();
   await page
-    .getByLabel("CSV file")
-    .setInputFiles({
-      name: "countries.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        "Country Code,English Name,Arabic Name,French Name\nDZ,Algeria,الجزائر,Algérie",
-      ),
-    });
+    .getByRole("button", { name: "Countries & locations", exact: true })
+    .click();
+  await page.getByLabel("CSV file").setInputFiles({
+    name: "countries.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "Country Code,English Name,Arabic Name,French Name\nDZ,Algeria,الجزائر,Algérie",
+    ),
+  });
   await page.getByRole("button", { name: "Preview CSV", exact: true }).click();
   await expect(page.getByText("1 valid rows ready to import.")).toBeVisible();
   expect(applied).toBe(false);

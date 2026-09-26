@@ -88,6 +88,12 @@ test("AI admin verifies access, saves settings and filters usage on desktop and 
         pharmacies: 3,
         hospitals: 1,
       });
+    if (url.pathname === "/api/backend/admin/settings")
+      return send({
+        organizationName: "Saydaliyati",
+        defaultLanguage: "EN",
+        timezone: "UTC",
+      });
     if (url.pathname.endsWith("/ai/settings")) {
       if (req.method() === "PATCH") {
         saved = req.postDataJSON();
@@ -119,6 +125,10 @@ test("AI admin verifies access, saves settings and filters usage on desktop and 
   await page.goto("/admin");
   await page
     .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
     .getByRole("button", { name: "AI", exact: true })
     .click();
   await expect(
@@ -228,6 +238,10 @@ test("AI loading errors recover and expired sessions remove the workspace", asyn
   await page.goto("/admin");
   await page
     .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
     .getByRole("button", { name: "AI", exact: true })
     .click();
   await expect(

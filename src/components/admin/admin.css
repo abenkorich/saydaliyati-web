@@ -641,3 +641,24 @@
 .admin-search {
   flex-direction: row;
 }
+
+.admin-settings-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+.admin-settings-nav button {
+  min-height: 44px;
+  background: white;
+  color: var(--admin-muted);
+  border-color: var(--admin-border);
+}
+.admin-settings-nav button:hover,
+.admin-settings-nav button[aria-current="page"] {
+  background: #ddf4f1;
+  color: var(--admin-teal);
+  border-color: #a9d9d1;
+}

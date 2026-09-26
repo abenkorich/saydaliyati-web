@@ -63,6 +63,10 @@ test("JSON/CSV downloads, preview, validation and confirmed import", async ({
   await page.goto("/admin");
   await page
     .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
     .getByRole("button", { name: "Import & Export" })
     .click();
   await expect(
@@ -183,7 +187,11 @@ test("oversized files are rejected locally and stale previews cannot be confirme
   });
   await page.goto("/admin");
   await page
-    .getByRole("navigation")
+    .getByRole("navigation", { name: "Administration" })
+    .getByRole("button", { name: "Settings", exact: true })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
     .getByRole("button", { name: "Import & Export" })
     .click();
   await page.getByLabel("Choose import file").setInputFiles({

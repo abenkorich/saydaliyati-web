@@ -42,6 +42,14 @@ const areas: { key: Area; label: string; icon: string }[] = [
   { key: "transfers", label: "Import & Export", icon: "⇄" },
   { key: "subscriptions", label: "Subscriptions", icon: "◇" },
 ];
+const settingsAreas: Area[] = ["settings", "ai", "geography", "transfers"];
+const settingsNavigation = settingsAreas.map((key) => {
+  const item = areas.find((entry) => entry.key === key)!;
+  return { ...item, label: key === "settings" ? "General" : item.label };
+});
+const mainNavigation = areas.filter(
+  (item) => item.key === "settings" || !settingsAreas.includes(item.key),
+);
 const descriptions: Record<Area, string> = {
   ai: "Manage AI settings, verify access and understand usage and costs.",
   geography:
@@ -223,6 +231,7 @@ export function Admin() {
         </div>
       </main>
     );
+  const inSettings = settingsAreas.includes(area);
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -231,11 +240,21 @@ export function Admin() {
         </Link>
         <span className="admin-eyebrow">ADMIN WORKSPACE</span>
         <nav aria-label="Administration">
-          {areas.map((item) => (
+          {mainNavigation.map((item) => (
             <button
               key={item.key}
-              className={area === item.key ? "active" : ""}
-              aria-current={area === item.key ? "page" : undefined}
+              className={
+                area === item.key || (item.key === "settings" && inSettings)
+                  ? "active"
+                  : ""
+              }
+              aria-current={
+                area === item.key
+                  ? "page"
+                  : item.key === "settings" && inSettings
+                    ? "location"
+                    : undefined
+              }
               onClick={() => setArea(item.key)}
             >
               <span aria-hidden="true">{item.icon}</span>
@@ -264,6 +283,11 @@ export function Admin() {
         <header className="admin-topbar">
           <span>
             Workspace <span aria-hidden="true">/</span>{" "}
+            {inSettings && area !== "settings" && (
+              <>
+                Settings <span aria-hidden="true">/</span>{" "}
+              </>
+            )}
             <strong>{areas.find((a) => a.key === area)?.label}</strong>
           </span>
           <span className="admin-access">● Admin access</span>
@@ -276,6 +300,20 @@ export function Admin() {
             <p className="admin-error" role="alert">
               {error}
             </p>
+          )}
+          {inSettings && (
+            <nav className="admin-settings-nav" aria-label="Settings sections">
+              {settingsNavigation.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  aria-current={area === item.key ? "page" : undefined}
+                  onClick={() => setArea(item.key)}
+                >
+                  <span aria-hidden="true">{item.icon}</span> {item.label}
+                </button>
+              ))}
+            </nav>
           )}
           {area === "ai" ? (
             <AiAdmin
