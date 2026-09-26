@@ -87,3 +87,9 @@ unit/session tests with real isolated Redis, four AI browser tests across Chromi
 desktop and Pixel 7, and API/web production builds. API and web lint and typechecks pass. The portal now passes its session version
 through reactive state to directory components; request callbacks retain the current
 version ref. Registration test configuration also passes lint without warnings.
+
+## GPT pricing presets
+
+The extraction form prefills empty pricing for GPT-4.1, GPT-4.1 mini/nano, GPT-4o and GPT-4o mini (including explicitly supported snapshots). Rates are standard USD per million tokens, verified September 26, 2026 against the linked official model pages. GPT-4.1 mini uses input $0.40, cached input $0.10 and output $1.60. If no model is configured, the form suggests GPT-4.1 mini; this is a draft until saved.
+
+Opening the form preserves existing custom rates, including zero and partially configured pricing. Changing the model fills its known rates or clears pricing for unknown models. “Use published GPT rates” restores the selected model’s preset. Clearing a previously saved override leaves rates blank when the underlying environment model is unavailable to the browser; save/refresh to resolve it. Monthly budgets are never inferred from provider pricing. Save AI settings to apply the draft to future requests; historical estimates remain unchanged. Presets do not fetch live prices and should be reverified when updated. No database migration is required for this UI update.

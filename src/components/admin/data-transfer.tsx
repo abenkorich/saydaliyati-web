@@ -25,7 +25,8 @@ type ExportFile = { filename: string; content: string; count: number };
 const fields: Record<Dataset, string> = {
   users:
     "id, status (editable); email, phone, role, createdAt, lastLoginAt (read-only)",
-  medicines: "id, name, genericName, strength, dosageForm, status, source",
+  medicines:
+    "id, name, brandName, genericName, strength, dosageForm, route, packageSize, categoryId, categorySlug, categoryName, manufacturerId, manufacturerName, manufacturerCountry, manufacturerWebsite, registrationNumber, regulatoryStatus, registrationHolder, holderCountry, country, description, boxImageUrl, status, source, sourceVersion, sourceChecksum, sourceUpdatedAt, sourceMetadata, ingredients, barcodes, images; read-only: normalizedName, createdAt, updatedAt",
   doctors:
     "id, name, specialty, licenseNumber, address, city, phone, email, status",
   pharmacies:
@@ -296,7 +297,7 @@ export function DataTransfer({
                   dataset === "users"
                     ? "Email or phone"
                     : dataset === "medicines"
-                      ? "Medicine or generic name"
+                      ? "Medicine, generic name or category"
                       : "Name or city"
                 }
               />
@@ -344,6 +345,27 @@ export function DataTransfer({
           </div>
         </section>
       </div>
+      {dataset === "medicines" && (
+        <section className="admin-panel">
+          <h2>Complete medicine catalog</h2>
+          <p>
+            Exports include category, manufacturer, packaging, registration
+            details, descriptions, source metadata, ingredients, barcodes and
+            image links.
+          </p>
+          <p>
+            JSON keeps structured objects and lists. In CSV, sourceMetadata,
+            ingredients, barcodes and images are JSON inside quoted cells.
+            Existing seven-column files still work.
+          </p>
+          <p>
+            Omitted detail columns preserve existing values. Empty cells or null
+            clear optional values; an empty list clears that medicine’s
+            ingredients, barcodes or images. Image files themselves are not
+            included.
+          </p>
+        </section>
+      )}
       <details className="admin-panel transfer-guide">
         <summary>Import format & matching rules</summary>
         <p>
@@ -356,6 +378,55 @@ export function DataTransfer({
         <p>
           <strong>Columns:</strong> {fields[dataset]}
         </p>
+        {dataset === "medicines" && (
+          <>
+            <p>
+              Structured field example (JSON; use JSON-encoded cells for these
+              lists in CSV):
+            </p>
+            <pre
+              style={{
+                whiteSpace: "pre-wrap",
+                overflowWrap: "anywhere",
+                fontSize: 12,
+                lineHeight: 1.7,
+              }}
+            >
+              {JSON.stringify(
+                {
+                  categorySlug: "example-category",
+                  categoryName: "Example category",
+                  ingredients: [
+                    { name: "Example ingredient", amount: "10", unit: "mg" },
+                  ],
+                  barcodes: [
+                    {
+                      barcode: "0012345678901",
+                      barcodeType: "EAN13",
+                      country: "DZ",
+                    },
+                  ],
+                  images: [
+                    {
+                      url: "https://example.com/box.jpg",
+                      imageType: "FRONT",
+                      sortOrder: 0,
+                      source: "manual",
+                    },
+                  ],
+                  sourceMetadata: { raw: { CODE: "00001" } },
+                },
+                null,
+                2,
+              )}
+            </pre>
+            <p>
+              Regulatory status: CURRENT, NOT_RENEWED or WITHDRAWN. Withdrawn
+              and non-renewed medicines cannot be ACTIVE. Image links must use
+              HTTPS.
+            </p>
+          </>
+        )}
         <p>
           JSON uses an array of objects. CSV requires a header row and uses
           empty cells for optional values. Quoted commas, multiline text and
@@ -363,7 +434,7 @@ export function DataTransfer({
         </p>
         <p>
           {dataset === "medicines"
-            ? "New medicines require a source. Use ACTIVE, INACTIVE or ARCHIVED for status."
+            ? "New medicines require a source. Use ACTIVE, INACTIVE or ARCHIVED for status. Assign a category by ID, unique name or slug; new categories require categorySlug and categoryName. Shared manufacturer and ingredient records are reused or created, not renamed by import. Keep supplied shared details consistent. Existing barcodes cannot be reassigned to another medicine. normalizedName, createdAt and updatedAt are read-only."
             : dataset === "settings"
               ? "Language must be EN, FR or AR. Use an IANA timezone, such as Africa/Algiers."
               : dataset === "users"

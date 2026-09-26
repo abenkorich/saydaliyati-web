@@ -4,9 +4,9 @@ const settings = {
   model: null,
   effectiveModel: "test-vision",
   keyConfigured: true,
-  inputRate: 2,
-  cachedInputRate: 0.5,
-  outputRate: 8,
+  inputRate: 2 as number | null,
+  cachedInputRate: 0.5 as number | null,
+  outputRate: 8 as number | null,
   monthlyBudget: 50,
   verification: { status: "NOT_CHECKED", checkedAt: null as string | null },
 };
@@ -142,7 +142,24 @@ test("AI admin verifies access, saves settings and filters usage on desktop and 
   await expect(
     page.getByRole("heading", { name: "Model access verified" }),
   ).toBeVisible();
+  // Opening settings keeps custom pricing; empty pricing uses the effective environment model.
+  await expect(page.getByLabel("Input USD / 1M tokens", { exact: true })).toHaveValue("2");
+  current = { ...current, effectiveModel: "gpt-4.1-mini", inputRate: null, cachedInputRate: null, outputRate: null };
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(page.getByLabel("Input USD / 1M tokens", { exact: true })).toHaveValue("0.4");
+  await expect(page.getByLabel("Cached input USD / 1M tokens", { exact: true })).toHaveValue("0.1");
+  await expect(page.getByLabel("Output USD / 1M tokens", { exact: true })).toHaveValue("1.6");
+  await page.getByLabel("Input USD / 1M tokens", { exact: true }).fill("0");
+  await page.getByRole("button", { name: "Use published GPT rates" }).click();
+  await expect(page.getByLabel("Input USD / 1M tokens", { exact: true })).toHaveValue("0.4");
+  await page.getByRole("button", { name: "Save AI settings" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "AI settings saved" })).toBeVisible();
+  expect(saved).toMatchObject({ model: null, inputRate: 0.4, cachedInputRate: 0.1, outputRate: 1.6, monthlyBudget: 50 });
+  await page.getByLabel("Model override").fill("gpt-4o-mini");
+  await expect(page.getByLabel("Cached input USD / 1M tokens", { exact: true })).toHaveValue("0.075");
   await page.getByLabel("Model override").fill("test-new-model");
+  await expect(page.getByLabel("Input USD / 1M tokens", { exact: true })).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Use published GPT rates" })).toBeDisabled();
   await page.getByLabel("Monthly budget USD", { exact: true }).fill("100");
   await page.getByLabel("Enable AI extraction").uncheck();
   await page.getByRole("button", { name: "Save AI settings" }).click();
@@ -153,9 +170,9 @@ test("AI admin verifies access, saves settings and filters usage on desktop and 
     enabled: false,
     model: "test-new-model",
     monthlyBudget: 100,
-    inputRate: 2,
-    cachedInputRate: 0.5,
-    outputRate: 8,
+    inputRate: null,
+    cachedInputRate: null,
+    outputRate: null,
   });
   await page
     .getByRole("combobox", { name: "Feature", exact: true })

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import "./ai-admin.css";
+import { gptRates, gptPricingPresets } from "./ai-pricing";
 type Settings = {
   enabled: boolean;
   model: string | null;
@@ -243,6 +244,7 @@ export function AiAdmin({
     ? JSON.stringify([
         settings.enabled,
         settings.model,
+        settings.effectiveModel,
         settings.inputRate,
         settings.cachedInputRate,
         settings.outputRate,
@@ -536,56 +538,13 @@ export function AiAdmin({
             PRESCRIPTION_SCAN_MODEL from the server environment. API keys remain
             on the server.
           </p>
-          <form key={settingsKey} onSubmit={save} className="ai-settings">
-            <label className="ai-toggle">
-              <input
-                type="checkbox"
-                name="enabled"
-                defaultChecked={settings.enabled}
-              />{" "}
-              Enable AI extraction
-            </label>
-            <label>
-              Model override
-              <input
-                name="model"
-                defaultValue={settings.model ?? ""}
-                maxLength={120}
-                pattern="[a-zA-Z0-9._:\-]+"
-                placeholder={settings.effectiveModel ?? "Server default"}
-              />
-            </label>
-            <div className="ai-rate-fields">
-              {[
-                ["inputRate", "Input USD / 1M tokens"],
-                ["cachedInputRate", "Cached input USD / 1M tokens"],
-                ["outputRate", "Output USD / 1M tokens"],
-                ["monthlyBudget", "Monthly budget USD"],
-              ].map(([key, label]) => (
-                <label key={key}>
-                  {label}
-                  <input
-                    type="number"
-                    name={key}
-                    min="0"
-                    max={key === "monthlyBudget" ? 1000000 : 10000}
-                    step="any"
-                    defaultValue={settings[key as "inputRate"] ?? ""}
-                    placeholder="Not set"
-                  />
-                </label>
-              ))}
-            </div>
-            <p>
-              Enter rates for the selected model. Costs are estimates saved at
-              request time; changing rates does not recalculate history. Blank
-              input or output rates leave cost unknown. Blank cached rate uses
-              the input rate.
-            </p>
-            <button disabled={!!busy || loading}>
-              {busy === "settings" ? "Saving…" : "Save AI settings"}
-            </button>
-          </form>
+          <AiSettingsForm
+            key={settingsKey}
+            settings={settings}
+            save={save}
+            busy={busy}
+            loading={loading}
+          />
         </section>
       )}
       <section className="admin-panel">
@@ -682,5 +641,99 @@ export function AiAdmin({
         </div>
       </section>
     </div>
+  );
+}
+
+
+function AiSettingsForm({ settings, save, busy, loading }: {
+  settings: Settings;
+  save: (event: FormEvent<HTMLFormElement>) => void;
+  busy: string;
+  loading: boolean;
+}) {
+  const [model, setModel] = useState(settings.model ?? (settings.effectiveModel ? "" : "gpt-4.1-mini"));
+  // If an override exists, the API effective model is that override, not the environment fallback.
+  const environmentModel = settings.model === null ? settings.effectiveModel : null;
+  const selectedModel = model.trim() || environmentModel;
+  const preset = gptRates(selectedModel);
+  const [rates, setRates] = useState(() => {
+    const saved = {
+      inputRate: settings.inputRate,
+      cachedInputRate: settings.cachedInputRate,
+      outputRate: settings.outputRate,
+    };
+    const initial = Object.values(saved).every((rate) => rate === null) ? (preset ?? saved) : saved;
+    return {
+      inputRate: initial.inputRate?.toString() ?? "",
+      cachedInputRate: initial.cachedInputRate?.toString() ?? "",
+      outputRate: initial.outputRate?.toString() ?? "",
+    };
+  });
+  function fillRates(nextModel: string | null) {
+    const next = gptRates(nextModel);
+    setRates({
+      inputRate: next?.inputRate.toString() ?? "",
+      cachedInputRate: next?.cachedInputRate.toString() ?? "",
+      outputRate: next?.outputRate.toString() ?? "",
+    });
+  }
+  return (
+    <form onSubmit={save} className="ai-settings">
+      <label className="ai-toggle">
+        <input type="checkbox" name="enabled" defaultChecked={settings.enabled} /> Enable AI extraction
+      </label>
+      <label>
+        Model override
+        <input
+          name="model"
+          value={model}
+          onChange={(event) => {
+            setModel(event.target.value);
+            fillRates(event.target.value.trim() || environmentModel);
+          }}
+          list="ai-gpt-models"
+          maxLength={120}
+          pattern="[a-zA-Z0-9._:\-]+"
+          placeholder={settings.effectiveModel ?? "Server default"}
+        />
+        <datalist id="ai-gpt-models">
+          {gptPricingPresets.map((item) => <option key={item.model} value={item.model} />)}
+        </datalist>
+      </label>
+      <button type="button" disabled={!preset || !!busy || loading} onClick={() => fillRates(selectedModel)}>
+        Use published GPT rates
+      </button>
+      <div className="ai-rate-fields">
+        {([
+          ["inputRate", "Input USD / 1M tokens"],
+          ["cachedInputRate", "Cached input USD / 1M tokens"],
+          ["outputRate", "Output USD / 1M tokens"],
+        ] as const).map(([key, label]) => (
+          <label key={key}>
+            {label}
+            <input type="number" name={key} min="0" max="10000" step="any"
+              value={rates[key]} onChange={(event) => setRates({ ...rates, [key]: event.target.value })}
+              placeholder="Not set" />
+          </label>
+        ))}
+        <label>
+          Monthly budget USD
+          <input type="number" name="monthlyBudget" min="0" max="1000000" step="any"
+            defaultValue={settings.monthlyBudget ?? ""} placeholder="Not set" />
+        </label>
+      </div>
+      <p>
+        {preset ? <>Published standard rates for {preset.model}. </> : <>No pricing preset for this model. Enter its rates manually. </>}
+        <a href={preset?.source ?? "https://developers.openai.com/api/docs/pricing"} target="_blank" rel="noreferrer">OpenAI pricing</a>
+        {" "}checked September 26, 2026. Rates are editable; saved custom rates are preserved when opening this form.
+        Changing the model fills its published rates or clears them when unknown.
+      </p>
+      <p>
+        Save to apply these rates to new scans. Costs are estimates saved at request time;
+        changing rates does not recalculate history. Blank input or output rates leave cost unknown.
+        Blank cached rate uses the input rate. Your monthly budget remains your own setting.
+      </p>
+      <button disabled={!!busy || loading}>{busy === "settings" ? "Saving…" : "Save AI settings"}</button>
+    </form>
   );
 }
